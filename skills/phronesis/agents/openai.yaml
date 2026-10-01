@@ -1,0 +1,7 @@
+interface:
+  display_name: "Phronesis"
+  short_description: "Replies shaped for autistic and ADHD readers"
+  default_prompt: "Use $phronesis to make this answer literal, action-first and easy to execute."
+
+policy:
+  allow_implicit_invocation: false

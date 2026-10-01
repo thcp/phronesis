@@ -1,0 +1,14 @@
+{
+  "name": "phronesis",
+  "description": "Phronesis: replies shaped for autistic and ADHD readers, plus a repository setup audit that follows the same rules.",
+  "owner": {
+    "name": "Thales"
+  },
+  "plugins": [
+    {
+      "name": "phronesis",
+      "source": "./",
+      "description": "Replies shaped for a reader who is autistic (level 1) and has ADHD, plus a Claude Code setup audit that uses the same shape. One plugin, two skills, grounded in cited research."
+    }
+  ]
+}

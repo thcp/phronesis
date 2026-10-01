@@ -1,0 +1,21 @@
+{
+  "name": "phronesis",
+  "interface": {
+    "displayName": "Phronesis"
+  },
+  "plugins": [
+    {
+      "name": "phronesis",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/thcp/phronesis.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

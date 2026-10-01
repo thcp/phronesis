@@ -1,0 +1,23 @@
+{
+  "name": "phronesis",
+  "version": "0.1.0",
+  "description": "Phronesis output shaping for Codex: answer first, numbered single steps, literal and consistent wording, changes announced before acting, certainty stated plainly.",
+  "author": {
+    "name": "Thales"
+  },
+  "license": "MIT",
+  "keywords": ["adhd", "autism", "accessibility", "output-style", "skills", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Phronesis",
+    "shortDescription": "Replies shaped for autistic and ADHD readers",
+    "longDescription": "Shape Codex responses for a reader who is autistic (level 1) and has ADHD: answer or next action first, numbered single steps, state restated each turn, real time estimates, literal and consistent wording, plan changes announced before acting, a reason with every rule, and certainty stated plainly.",
+    "developerName": "Thales",
+    "category": "Productivity",
+    "capabilities": ["Instructions"],
+    "defaultPrompt": [
+      "Use phronesis for this task.",
+      "Answer first, literally, and tell me exactly what to do next."
+    ]
+  }
+}
