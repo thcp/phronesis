@@ -3,7 +3,7 @@
 <h1>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/phronesis-logo-dark.svg">
-    <img src="assets/phronesis-logo-light.svg" alt="Phronesis" width="480">
+    <img src="assets/phronesis-logo-light.svg" alt="Phronesis" width="600">
   </picture>
 </h1>
 
