@@ -1,6 +1,6 @@
 {
   "name": "phronesis",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Phronesis: replies shaped for a reader who is autistic (level 1) and has ADHD.",
   "license": "MIT",
   "skills": "./skills/",

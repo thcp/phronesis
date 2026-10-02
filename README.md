@@ -33,7 +33,7 @@ Then type `/phronesis:phronesis` for the reply style, or `/phronesis:claude-setu
 for the audit. Say "stop phronesis" to turn the style off.
 
 - **Always on, no typing:** create the file `~/.claude/.phronesis-always` (needs Node). Each
-  session then starts with a compact core of the rules (about 750 tokens), and each prompt gets
+  session then starts with a compact core of the rules (about 900 tokens), and each prompt gets
   a one-line reminder (about 40 tokens) so the style does not fade in long sessions.
 - **Length:** say `phronesis short` or `phronesis detailed`. `phronesis normal` is the default.
 - **Other agents** (Codex, OpenCode, Gemini CLI, Qwen Code, Kimi Code, Antigravity, Cursor):
@@ -69,6 +69,7 @@ A full example is in [examples/phronesis.md](examples/phronesis.md).
 14. No preamble, no recap, no pleasantries.
 15. Keep code changes predictable.
 16. Keep facts exact when shortening.
+17. Plans and estimates name every place the change touches.
 
 Decisions come as multiple choice, only when your answer changes what happens next.
 Full rules and reasons: [SKILL.md](skills/phronesis/SKILL.md).
@@ -89,6 +90,7 @@ describe groups, not any one person.
 isolated headless sessions, and measures precision (required facts, false claims checked
 against the code by a blind judge), shape (answer in line 1, preamble, list length, certainty,
 plain ASCII), cost (tokens, latency) and skill triggering. Results for this release:
+[bench/results/RESULTS-v0.4.0.md](bench/results/RESULTS-v0.4.0.md); for v0.3.0:
 [bench/results/RESULTS.md](bench/results/RESULTS.md). Against Ponytail and caveman:
 [bench/results/COMPARISON.md](bench/results/COMPARISON.md).
 
