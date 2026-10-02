@@ -514,7 +514,8 @@ function report(o) {
     });
   }
 
-  const cArms = listDir(path.join(root, 'code')).filter((a) => arms.includes(a));
+  // Same arm order as every other section of the report.
+  const cArms = arms.filter((a) => listDir(path.join(root, 'code')).includes(a));
   if (cArms.length) {
     const cr = Object.fromEntries(cArms.map((a) => [a, listDir(path.join(root, 'code', a)).map((f) => readJson(path.join(root, 'code', a, f)))]));
     const jd = listDir(path.join(root, 'judge-code')).sort((a, b) => b.split('+').length - a.split('+').length)[0];
