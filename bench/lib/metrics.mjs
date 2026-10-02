@@ -7,7 +7,7 @@ const CERTAINTY = /\b(verified|not verified|unverified|i don'?t know|guess|not s
 const DECOR = /[\u2013\u2014\u2018\u2019\u201C\u201D\u2026\u2192\u21D2]|\p{Extended_Pictographic}/gu;
 const LIST_ITEM = /^(\d+[.)]|[-*+])\s+/;
 // A request for confirmation, as a question or as a statement ("I need a yes from you").
-const CONFIRM = /\?|\bconfirm|need (a yes|your (ok|go-ahead|approval))|tell me (whether|which|if)|do you want|should i\b|before (you|i) (delete|run|remove)|only (if|after) you/i;
+const CONFIRM = /\?|\bconfirm|need (a yes|your (ok|go-ahead|approval))|tell me (whether|which|if)|say so|do you want|should i\b|before (you|i) (delete|run|remove)|only (if|after) you/i;
 const TIME_UNIT = /\b\d+(\.\d+)?\s*(-|to)?\s*\d*\s*(minutes?|mins?|hours?|hrs?|days?|weeks?)\b|\b(half an? (hour|day)|an? (hour|day|afternoon|morning))\b/i;
 
 const words = (s) => (s.match(/\S+/g) || []).length;

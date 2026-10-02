@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { parseArm, hookContext } from './lib/arms.mjs';
+import { parseArm, hookContext, agentsFile } from './lib/arms.mjs';
 import { runClaude, parseJsonResult, parseStream, pool } from './lib/claude.mjs';
 import { measure, shapeChecks } from './lib/metrics.mjs';
 import { fitPrices } from './lib/stats.mjs';
@@ -96,8 +96,11 @@ async function replies(o) {
     let input = turn ? `${task.prompt}\n\n${reminder(turn)}` : task.prompt;
     if (session && o.placement === 'system') extra.push('--append-system-prompt-file', injectFile(workDir, arm, session));
     else if (session) input = `${reminder(session)}\n\n${input}`;
+    // --with-agents: the Agent tool is available (as in real Claude Code) and the arm's own
+    // subagents are loaded. Off by default so earlier runs stay comparable.
+    const toolArgs = o['with-agents'] ? withAgents(arm, workDir, 'Read,Grep,Glob,Agent') : ['--tools', 'Read,Grep,Glob'];
     const res = await runClaude({
-      args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob', ...extra],
+      args: ['--output-format', 'json', ...toolArgs, ...extra],
       input,
       cwd: o.workspace,
     });
@@ -303,6 +306,11 @@ ${out.chat}
 // ---------------------------------------------------------------- code
 
 const reminder = (t) => `<system-reminder>\n${t}\n</system-reminder>`;
+function withAgents(arm, workDir, tools) {
+  const f = agentsFile(arm, workDir);
+  return ['--tools', tools, ...(f ? ['--agents', f] : [])];
+}
+
 const CODE_TOOLS = ['--tools', 'Read,Grep,Glob,Edit,Write,Bash', '--allowedTools',
   'Bash(npx vitest:*)', 'Bash(npm test:*)', 'Bash(npm run typecheck:*)', 'Bash(git diff:*)', 'Bash(git status:*)',
   '--permission-mode', 'acceptEdits', '--max-turns', '40'];
@@ -348,7 +356,9 @@ async function code(o) {
     const turn = hookContext(arm, 'UserPromptSubmit', { prompt: task.prompt });
     let input = turn ? `${task.prompt}\n\n${reminder(turn)}` : task.prompt;
     if (session) input = `${reminder(session)}\n\n${input}`;
-    const res = await runClaude({ args: ['--output-format', 'json', ...CODE_TOOLS], input, cwd: ws, timeoutMs: 1200000 });
+    // With agents, the tool list gains Agent and the arm's subagents are loaded.
+    const codeArgs = o['with-agents'] ? [...withAgents(arm, workDir, 'Read,Grep,Glob,Edit,Write,Bash,Agent'), ...CODE_TOOLS.slice(2)] : CODE_TOOLS;
+    const res = await runClaude({ args: ['--output-format', 'json', ...codeArgs], input, cwd: ws, timeoutMs: 1200000 });
     const parsed = res.ok ? parseJsonResult(res.stdout) : null;
     if (!parsed) {
       log('CODE FAILED', arm.name, task.id, t, res.error || res.stderr);
