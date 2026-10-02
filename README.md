@@ -32,7 +32,9 @@ claude plugin install phronesis@phronesis
 Then type `/phronesis:phronesis` for the reply style, or `/phronesis:claude-setup-audit`
 for the audit. Say "stop phronesis" to turn the style off.
 
-- **Always on, no typing:** create the file `~/.claude/.phronesis-always` (needs Node).
+- **Always on, no typing:** create the file `~/.claude/.phronesis-always` (needs Node). Each
+  session then starts with a compact core of the rules (about 750 tokens), and each prompt gets
+  a one-line reminder (about 40 tokens) so the style does not fade in long sessions.
 - **Length:** say `phronesis short` or `phronesis detailed`. `phronesis normal` is the default.
 - **Other agents** (Codex, OpenCode, Gemini CLI, Qwen Code, Kimi Code, Antigravity, Cursor):
   see [INSTALL.md](INSTALL.md).
@@ -66,6 +68,7 @@ A full example is in [examples/phronesis.md](examples/phronesis.md).
 13. One topic per reply.
 14. No preamble, no recap, no pleasantries.
 15. Keep code changes predictable.
+16. Keep facts exact when shortening.
 
 Decisions come as multiple choice, only when your answer changes what happens next.
 Full rules and reasons: [SKILL.md](skills/phronesis/SKILL.md).
@@ -76,8 +79,17 @@ Each rule rests on published work: working memory and time perception in ADHD, s
 autistic and ADHD software engineers, accessible writing, and how neurodivergent people use
 AI. The papers, with links and limits, are in [SOURCES.md](skills/phronesis/SOURCES.md).
 
-**Benefits are expected, not measured.** None of the sources tested this plugin. This is
-not medical advice: the sources describe groups, not any one person.
+**Benefits for readers are expected, not measured.** None of the sources tested this plugin,
+and the benchmark below measures replies, not people. This is not medical advice: the sources
+describe groups, not any one person.
+
+## Benchmark
+
+[bench/](bench/README.md) runs the same tasks with no Phronesis and with each version, in
+isolated headless sessions, and measures precision (required facts, false claims checked
+against the code by a blind judge), shape (answer in line 1, preamble, list length, certainty,
+plain ASCII), cost (tokens, latency) and skill triggering. Results for this release:
+[bench/results/RESULTS.md](bench/results/RESULTS.md).
 
 ## claude-setup-audit
 
@@ -86,11 +98,20 @@ agents and hooks that fit, flags missing tests, trims your CLAUDE.md, and plans 
 measure whether the setup helps. It installs nothing until you say yes.
 
 The first time you open a git repository with the plugin on, it answers your first message
-and then offers a read-only scan: yes, not now, or never for this repository. It never
-opens PDFs, `.env` files, keys or data folders.
+and then offers a read-only scan: yes, not now (asks again after 7 days), or never for this
+repository. It never opens PDFs, `.env` files, keys or data folders.
 
 The full report goes to `.claude/audit-report.md`. Chat gets a verdict, the top five
 recommendations and a numbered plan.
+
+Two tested scripts ship with it, so the audit does not rely on judgement alone:
+- `scripts/check-setup.mjs`: deterministic checks of skill frontmatter limits, the skill
+  listing budget, CLAUDE.md size and imports, broad permissions, risky hooks, agent tools and
+  models, and which private files exist (by name only). `--usage` reads token counts and skill
+  names from your session logs, never message text.
+- `scripts/drift-check.mjs`: the session-start check the audit installs. It reports new
+  commits on adopted sources, changed documentation pages and retired model IDs, once a day,
+  and stays silent when offline or when nothing changed.
 
 ## Make it yours
 
