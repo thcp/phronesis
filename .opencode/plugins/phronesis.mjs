@@ -4,9 +4,10 @@
 //
 //   On demand:  registers the skills directory and an `/phronesis` command, so the
 //               rules apply for the rest of the session.
-//   Always-on:  while ~/.config/opencode/.phronesis-always exists, the full rules
-//               are appended to the system prompt every turn (the OpenCode
-//               equivalent of the SessionStart hook in hooks/always-on.mjs).
+//   Always-on:  while ~/.config/opencode/.phronesis-always exists, the always-on
+//               core (skills/phronesis/core.md) is appended to the system prompt
+//               every turn (the OpenCode equivalent of the SessionStart hook in
+//               hooks/always-on.mjs). The full rules stay available through the skill.
 //
 // Install: add to opencode.json
 //   { "plugin": ["/absolute/path/to/phronesis/.opencode/plugins/phronesis.mjs"] }
@@ -18,7 +19,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillsDir = path.resolve(__dirname, '../../skills');
-const skillPath = path.join(skillsDir, 'phronesis', 'SKILL.md');
+const corePath = path.join(skillsDir, 'phronesis', 'core.md');
 const commandPath = path.join(__dirname, '..', 'command', 'phronesis.md');
 
 const flagPath = path.join(
@@ -35,12 +36,9 @@ async function commandDefinition() {
   return { ...JSON.parse(match[1]), template: match[2].trim() };
 }
 
-// SKILL.md without its frontmatter, trimmed the same way as hooks/always-on.mjs.
+// The always-on core, trimmed the same way as hooks/always-on.mjs.
 function rulesBody() {
-  return fs
-    .readFileSync(skillPath, 'utf8')
-    .replace(/^---[^\S\r\n]*\r?\n[\s\S]*?\r?\n---[^\S\r\n]*(?:\r?\n|$)/, '')
-    .replace(/(?:\r?\n)+$/, '');
+  return fs.readFileSync(corePath, 'utf8').replace(/(?:\r?\n)+$/, '');
 }
 
 export default async () => {
