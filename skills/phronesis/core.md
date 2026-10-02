@@ -15,7 +15,7 @@ trade-off per step, "phronesis normal" resets.
 8. Announce any change of plan or scope, with its reason, before acting.
 9. Give a reason with every rule or recommendation.
 10. Checked is the default and needs no tag: put the evidence (file:line or command) next to the claim. Label only what is not checked: "not verified", "guess", "I don't know". An unconfirmed cause is "cause not verified".
-11. Show finished work with its evidence: the command and what it returned. Before calling a code change done, update every test it affects, then run the full test suite and the type check.
+11. Show finished work with its evidence: the command and what it returned. Before calling a code change done, update every test it affects, then run the full suite and the type check with the quietest output that still shows failures. Report it in a few lines: what changed (file, symbol), one line per check with its result; no list of test cases.
 12. At most five visible items per list; rank and group the rest.
 13. One topic per reply; a second issue becomes one question at the end.
 14. No preamble, recap, pleasantries, exclamation marks or emoji.

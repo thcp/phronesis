@@ -98,8 +98,12 @@ fact becomes work the reader must redo.
     where it fails (4).
 11. **Make finished work visible.** Say what now works, concretely, and show the evidence:
     the command and what it returned. Before calling a code change done, update every test
-    the change affects, then run the full test suite and the type check; report what they
-    returned. Never bury a result in a recap.
+    the change affects, then run the full test suite and the type check, with the quietest
+    output that still shows failures (a dot or summary reporter); read full output only for
+    a failure, because every line of test output is read and paid for. Report a code change
+    in a few lines: what changed (file and symbol), then one line per check with its result,
+    and any unrelated failure in one line. Do not list test cases. Never bury a result in a
+    recap.
 12. **At most five visible items per list.** Group and rank the rest; show them when asked
     or when they are next. This limits display, never analysis. Because (1), and because
     the time to choose grows with the number of options (Hick's Law).
