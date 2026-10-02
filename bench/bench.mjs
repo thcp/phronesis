@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 import { parseArm, hookContext } from './lib/arms.mjs';
 import { runClaude, parseJsonResult, parseStream, pool } from './lib/claude.mjs';
 import { measure, shapeChecks } from './lib/metrics.mjs';
+import { fitPrices } from './lib/stats.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 
@@ -46,13 +47,35 @@ const log = (...m) => console.error(new Date().toISOString().slice(11, 19), ...m
 
 // ---------------------------------------------------------------- replies
 
+function injectFile(workDir, arm, text) {
+  const f = path.join(workDir, 'inject', `${arm.name}.txt`);
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  fs.writeFileSync(f, text);
+  return f;
+}
+
 async function replies(o) {
   const tasks = loadTasks(o);
   const workDir = path.join(o.out, 'work');
   const arms = o.arm.map((s) => parseArm(s, workDir));
   const trials = Number(o.trials || 3);
+  // Interleaved (trial, task, arm), so no arm runs while the cache is systematically
+  // warmer or colder than another's.
   const jobs = [];
-  for (const arm of arms) for (const task of tasks) for (let t = 1; t <= trials; t++) jobs.push({ arm, task, t });
+  for (let t = 1; t <= trials; t++) for (const task of tasks) for (const arm of arms) jobs.push({ arm, task, t });
+
+  // One unmeasured call per arm first, so every measured call finds that arm's prompt
+  // prefix already cached, as it would be after the first turn of a real session.
+  // --no-warmup measures cold starts instead.
+  if (!o['no-warmup']) {
+    await pool(arms, arms.length, async (arm) => {
+      const session = hookContext(arm, 'SessionStart', {});
+      const extra = session ? ['--append-system-prompt-file', injectFile(workDir, arm, session)] : [];
+      const res = await runClaude({ args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob', ...extra], input: 'Reply with OK.', cwd: o.workspace });
+      const w = res.ok ? parseJsonResult(res.stdout) : null;
+      log('warm-up', arm.name, w ? `cache write ${w.cacheWriteTokens}, read ${w.cacheReadTokens}, $${w.costUsd}` : 'FAILED');
+    });
+  }
 
   await pool(jobs, Number(o.concurrency || 4), async ({ arm, task, t }) => {
     const file = path.join(o.out, 'raw', 'replies', arm.name, `${task.id}__${t}.json`);
@@ -60,12 +83,7 @@ async function replies(o) {
     const session = hookContext(arm, 'SessionStart', {});
     const turn = hookContext(arm, 'UserPromptSubmit', { prompt: task.prompt });
     const extra = [];
-    if (session) {
-      const f = path.join(workDir, 'inject', `${arm.name}.txt`);
-      fs.mkdirSync(path.dirname(f), { recursive: true });
-      fs.writeFileSync(f, session);
-      extra.push('--append-system-prompt-file', f);
-    }
+    if (session) extra.push('--append-system-prompt-file', injectFile(workDir, arm, session));
     // UserPromptSubmit context arrives next to the prompt, as Claude Code adds it.
     const input = turn ? `${task.prompt}\n\n<system-reminder>\n${turn}\n</system-reminder>` : task.prompt;
     const res = await runClaude({
@@ -296,6 +314,7 @@ function rescore(o) {
 
 // ---------------------------------------------------------------- report
 
+
 const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
 const sd = (xs) => {
   const m = mean(xs);
@@ -344,11 +363,24 @@ function report(o) {
   L.push('', '## Cost and speed (mean per reply)', '', `| Metric | ${arms.join(' | ')} |`, `|---|${arms.map(() => '---').join('|')}|`);
   row('Words', (a) => `${fmt(mean(rows[a].map((r) => r.metrics.words)), 0)} (sd ${fmt(sd(rows[a].map((r) => r.metrics.words)), 0)})`);
   row('Output tokens', (a) => fmt(mean(nums(rows[a].map((r) => r.outputTokens))), 0));
-  row('Input tokens', (a) => fmt(mean(nums(rows[a].map((r) => r.inputTokens))), 0));
+  row('Input tokens (all)', (a) => fmt(mean(nums(rows[a].map((r) => r.inputTokens))), 0));
+  row('  uncached', (a) => fmt(mean(nums(rows[a].map((r) => r.uncachedTokens))), 0));
+  row('  cache write', (a) => fmt(mean(nums(rows[a].map((r) => r.cacheWriteTokens))), 0));
+  row('  cache read', (a) => fmt(mean(nums(rows[a].map((r) => r.cacheReadTokens))), 0));
   row('Injected context (chars)', (a) => fmt(mean(rows[a].map((r) => r.injectedChars)), 0));
   row('Latency (s)', (a) => fmt(mean(nums(rows[a].map((r) => r.durationMs))) / 1000, 1));
   row('Cost (USD)', (a) => fmt(mean(nums(rows[a].map((r) => r.costUsd))), 4));
   row('Tool turns', (a) => fmt(mean(nums(rows[a].map((r) => r.turns))), 1));
+
+  // Where the money goes: prices per token type are fitted to the billed cost of every
+  // run (least squares), so no price list is assumed.
+  const all = arms.flatMap((a) => rows[a]).filter((r) => typeof r.cacheWriteTokens === 'number' && typeof r.costUsd === 'number');
+  const price = fitPrices(all);
+  if (price) {
+    const parts = [['cache write', 'cacheWriteTokens'], ['cache read', 'cacheReadTokens'], ['output', 'outputTokens']];
+    L.push('', '## Cost by token type (mean USD per reply)', '', `Fitted prices per million tokens: ${parts.map(([l], i) => `${l} $${fmt(price[i] * 1e6, 2)}`).join(', ')}. Fit error: ${pct(price.relError)} of billed cost.`, '', `| Part | ${arms.join(' | ')} |`, `|---|${arms.map(() => '---').join('|')}|`);
+    parts.forEach(([label, key], i) => row(label, (a) => fmt(mean(nums(rows[a].map((r) => r[key]))) * price[i], 4)));
+  }
 
   L.push('', '## Per category: required facts / judge correctness', '', `| Category | ${arms.join(' | ')} |`, `|---|${arms.map(() => '---').join('|')}|`);
   for (const cat of [...new Set(tasks.map((t) => t.category))]) {
