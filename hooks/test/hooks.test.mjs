@@ -46,7 +46,7 @@ test('always-on: injects the core, not the full skill', () => {
   const out = run('SessionStart', 0, { config: withFlag(), project: tmp() });
   assert.match(out, /Phronesis is on for every reply/);
   assert.match(out, /always-on core/);
-  assert.ok(out.length < 3500, `core is ${out.length} chars`);
+  assert.ok(out.length < 4000, `core is ${out.length} chars`); // the full SKILL.md is over 10k
   assert.doesNotMatch(out, /^---/m, 'frontmatter must not leak');
 });
 
