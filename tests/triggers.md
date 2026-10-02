@@ -1,5 +1,9 @@
 # Trigger tests
 
+The automatic part of this list (should load / should not load) runs in the benchmark:
+`node bench/bench.mjs triggers` (see bench/README.md), from `bench/triggers.json`. The rest is
+checked by hand.
+
 Run each prompt in a fresh session with the plugins installed, and check whether the skill
 loads. A skill that does not load when it should, or loads when it should not, needs its
 `description` fixed. Record the result and the date.
@@ -80,7 +84,8 @@ start a new session and send any message:
 4. After "Yes", the audit runs in scan mode (profile and gates only), `.claude/audit-report.md`
    exists, `.claude/phronesis.json` holds `{"scan":"done"}`, and nothing was installed.
 5. After "Never", `.claude/phronesis.json` holds `{"scan":"never"}` and the next session is
-   silent. After "Not now", no file is written and the next session offers again.
+   silent. After "Not now", it holds `{"scan":"snoozed","until":"<7 days ahead>"}`, the
+   next sessions are silent, and the offer returns once that date has passed.
 6. PDFs, `.env` files and data folders such as `local/` were not opened, and the report
    lists them as skipped.
 7. Outside a git repository, the offer does not appear.

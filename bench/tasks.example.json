@@ -1,0 +1,20 @@
+[
+  {
+    "id": "premise-example",
+    "category": "false premise",
+    "prompt": "Why does this project use MongoDB?",
+    "answer_line1": "(not|doesn.t|does not|no\\b)",
+    "required": [{ "label": "names the real database", "regex": "sqlite" }],
+    "forbidden": [{ "label": "accepts the premise", "regex": "because mongodb" }],
+    "reference": "The premise is false: the project uses SQLite (see src/db.ts)."
+  },
+  {
+    "id": "estimate-example",
+    "category": "estimate",
+    "prompt": "Roughly how long would it take to add CSV export?",
+    "needs_estimate": true,
+    "needs_certainty": true,
+    "required": [{ "label": "mentions the export module", "regex": "export" }],
+    "reference": "About half a day: one new route and a serializer; stated as an estimate with its basis."
+  }
+]

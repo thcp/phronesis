@@ -17,7 +17,9 @@ claude plugin install phronesis@phronesis
 
 Type `/phronesis:phronesis`. The rules stay on until "stop phronesis" or "normal mode".
 
-Always-on, in every session: create the flag file (needs Node on the PATH).
+Always-on, in every session: create the flag file (needs Node on the PATH). Sessions then
+start with the compact core of the rules (`skills/phronesis/core.md`, about 750 tokens) and
+each prompt gets a one-line reminder; the full rules load when the skill is invoked.
 
 ```
 touch ~/.claude/.phronesis-always          # macOS, Linux, Git Bash

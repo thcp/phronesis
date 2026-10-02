@@ -1,6 +1,8 @@
 // SessionStart hook for Claude Code and Codex: when the user has opted in by
 // creating $CLAUDE_CONFIG_DIR/.phronesis-always (default ~/.claude/.phronesis-always),
-// inject the full Phronesis ruleset into the session's context.
+// inject the Phronesis always-on core (skills/phronesis/core.md) into the session's
+// context. The core is about a quarter of the full SKILL.md; the full rules stay
+// available on demand through the skill.
 //
 // Adapted from i-have-adhd's hooks/always-on.mjs (MIT, see NOTICE). Runs under
 // Node so it works on Windows, macOS and Linux. Never blocks session start:
@@ -16,15 +18,12 @@ try {
   const flagPath = path.join(configDir, ".phronesis-always");
   if (!fs.existsSync(flagPath)) process.exit(0);
 
-  // The skill is found relative to this file, not through an environment variable.
+  // The core is found relative to this file, not through an environment variable.
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const skillPath = path.join(here, "..", "skills", "phronesis", "SKILL.md");
-  if (!fs.existsSync(skillPath)) process.exit(0);
+  const corePath = path.join(here, "..", "skills", "phronesis", "core.md");
+  if (!fs.existsSync(corePath)) process.exit(0);
 
-  const body = fs
-    .readFileSync(skillPath, "utf8")
-    .replace(/^---[^\S\r\n]*\r?\n[\s\S]*?\r?\n---[^\S\r\n]*(?:\r?\n|$)/, "")
-    .replace(/(?:\r?\n)+$/, "");
+  const body = fs.readFileSync(corePath, "utf8").replace(/(?:\r?\n)+$/, "");
 
   process.stdout.write(
     "Phronesis is on for every reply (always-on). " +
