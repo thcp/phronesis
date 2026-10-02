@@ -52,6 +52,34 @@ function matches(matcher, value) {
   return new RegExp(`^(?:${matcher})$`).test(value);
 }
 
+// The arm's own subagents (agents/*.md), as the JSON that `claude --agents` takes, written
+// to a file. Returns null when the arm ships none. Installed plugins make their agents
+// available, so the benchmark does too.
+export function agentsFile(arm, workDir) {
+  if (!arm.dir) return null;
+  const dir = path.join(arm.dir, 'agents');
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.md')) : [];
+  const agents = {};
+  for (const f of files) {
+    const m = fs.readFileSync(path.join(dir, f), 'utf8').match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+    if (!m) continue;
+    const fm = Object.fromEntries(m[1].split(/\r?\n/).map((l) => l.match(/^([\w-]+):\s*(.*)$/)).filter(Boolean).map((x) => [x[1], x[2].trim()]));
+    if (!fm.name || !fm.description) continue;
+    agents[fm.name] = {
+      description: fm.description,
+      prompt: m[2].trim(),
+      ...(fm.tools ? { tools: fm.tools.split(',').map((t) => t.trim()) } : {}),
+      ...(fm.model ? { model: fm.model } : {}),
+      ...(fm.effort ? { effort: fm.effort } : {}),
+    };
+  }
+  if (!Object.keys(agents).length) return null;
+  const out = path.join(workDir, 'agents', `${arm.name}.json`);
+  fs.mkdirSync(path.dirname(out), { recursive: true });
+  fs.writeFileSync(out, JSON.stringify(agents));
+  return out;
+}
+
 // A plugin declares hooks in hooks/hooks.json, or in .claude-plugin/plugin.json as an
 // inline object or as a path to a hooks file. All three are merged, as Claude Code does.
 function pluginHooks(dir) {

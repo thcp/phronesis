@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { hookContext, parseArm } from '../lib/arms.mjs';
+import { agentsFile, hookContext, parseArm } from '../lib/arms.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -30,4 +30,14 @@ test('hooks declared inline in .claude-plugin/plugin.json are run', () => {
     hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'node -e "process.stdout.write(\'inline rules\')"' }] }] },
   }));
   assert.equal(hookContext(parseArm(`x=dir:${dir}`, os.tmpdir()), 'SessionStart', {}), 'inline rules');
+});
+
+test('an arm ships its subagents as --agents JSON with model and effort', () => {
+  const f = agentsFile(parseArm(`p=dir:${ROOT}`, os.tmpdir()), fs.mkdtempSync(path.join(os.tmpdir(), 'phr-ag-')));
+  const agents = JSON.parse(fs.readFileSync(f, 'utf8'));
+  assert.deepEqual(Object.keys(agents).sort(), ['checker', 'scout']);
+  assert.equal(agents.scout.model, 'haiku');
+  assert.equal(agents.scout.effort, 'low');
+  assert.deepEqual(agents.scout.tools, ['Read', 'Grep', 'Glob']);
+  assert.equal(agentsFile(parseArm('c=none', os.tmpdir()), os.tmpdir()), null);
 });
