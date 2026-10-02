@@ -60,10 +60,15 @@ export function hookContext(arm, event, input) {
   if (!fs.existsSync(file)) return '';
   const groups = JSON.parse(fs.readFileSync(file, 'utf8')).hooks?.[event] || [];
 
-  const config = fs.mkdtempSync(path.join(os.tmpdir(), 'phr-cfg-'));
+  // Fixed paths, not fresh temporary ones: hook output can name these paths (always-on
+  // names its flag file), and text that changes on every run defeats the prompt cache,
+  // which no real session does. The project folder is not a git repository, so the
+  // first-run offer stays silent.
+  const config = path.join(os.tmpdir(), 'phronesis-bench-config');
+  const project = path.join(os.tmpdir(), 'phronesis-bench-project');
+  fs.mkdirSync(config, { recursive: true });
+  fs.mkdirSync(project, { recursive: true });
   fs.writeFileSync(path.join(config, '.phronesis-always'), '');
-  // A directory that is not a git repository, so the first-run offer stays silent.
-  const project = fs.mkdtempSync(path.join(os.tmpdir(), 'phr-proj-'));
 
   const parts = [];
   for (const group of groups) {
@@ -81,7 +86,5 @@ export function hookContext(arm, event, input) {
       if (ctx) parts.push(ctx);
     }
   }
-  fs.rmSync(config, { recursive: true, force: true });
-  fs.rmSync(project, { recursive: true, force: true });
   return parts.join('\n\n');
 }

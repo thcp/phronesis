@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Phronesis benchmark. See bench/README.md.
 //
-//   node bench/bench.mjs replies  --suite S --out O --workspace W --arm A [--arm B] [--trials 3]
+//   node bench/bench.mjs replies  --suite S --out O --workspace W --arm A [--arm B] [--trials 3] [--placement message|system] [--no-warmup]
 //   node bench/bench.mjs judge    --suite S --out O --workspace W
 //   node bench/bench.mjs triggers --out O --arm A [--trials 1]
 //   node bench/bench.mjs audit    --suite S --out O --repo R --arm A [--trials 2]
@@ -70,8 +70,10 @@ async function replies(o) {
   if (!o['no-warmup']) {
     await pool(arms, arms.length, async (arm) => {
       const session = hookContext(arm, 'SessionStart', {});
-      const extra = session ? ['--append-system-prompt-file', injectFile(workDir, arm, session)] : [];
-      const res = await runClaude({ args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob', ...extra], input: 'Reply with OK.', cwd: o.workspace });
+      const system = session && o.placement === 'system';
+      const extra = system ? ['--append-system-prompt-file', injectFile(workDir, arm, session)] : [];
+      const input = session && !system ? `<system-reminder>\n${session}\n</system-reminder>\n\nReply with OK.` : 'Reply with OK.';
+      const res = await runClaude({ args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob', ...extra], input, cwd: o.workspace });
       const w = res.ok ? parseJsonResult(res.stdout) : null;
       log('warm-up', arm.name, w ? `cache write ${w.cacheWriteTokens}, read ${w.cacheReadTokens}, $${w.costUsd}` : 'FAILED');
     });
@@ -82,10 +84,15 @@ async function replies(o) {
     if (fs.existsSync(file)) return;
     const session = hookContext(arm, 'SessionStart', {});
     const turn = hookContext(arm, 'UserPromptSubmit', { prompt: task.prompt });
+    // Claude Code adds hook output to the conversation, after the system prompt and tools,
+    // so by default the SessionStart context goes before the first prompt and the
+    // UserPromptSubmit context next to it. --placement system appends the SessionStart
+    // context to the system prompt instead (the method used before 0.3.1).
     const extra = [];
-    if (session) extra.push('--append-system-prompt-file', injectFile(workDir, arm, session));
-    // UserPromptSubmit context arrives next to the prompt, as Claude Code adds it.
-    const input = turn ? `${task.prompt}\n\n<system-reminder>\n${turn}\n</system-reminder>` : task.prompt;
+    const reminder = (t) => `<system-reminder>\n${t}\n</system-reminder>`;
+    let input = turn ? `${task.prompt}\n\n${reminder(turn)}` : task.prompt;
+    if (session && o.placement === 'system') extra.push('--append-system-prompt-file', injectFile(workDir, arm, session));
+    else if (session) input = `${reminder(session)}\n\n${input}`;
     const res = await runClaude({
       args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob', ...extra],
       input,
