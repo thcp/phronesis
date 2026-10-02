@@ -17,7 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parseArm, hookContext, agentsFile } from './lib/arms.mjs';
-import { runClaude, parseJsonResult, parseStream, pool } from './lib/claude.mjs';
+import { runClaude, parseJsonResult, parseStream, parseStreamResult, pool } from './lib/claude.mjs';
 import { measure, shapeChecks } from './lib/metrics.mjs';
 import { fitPrices } from './lib/stats.mjs';
 import { freshClone, diffStats, verify } from './lib/code.mjs';
@@ -358,8 +358,21 @@ async function code(o) {
     if (session) input = `${reminder(session)}\n\n${input}`;
     // With agents, the tool list gains Agent and the arm's subagents are loaded.
     const codeArgs = o['with-agents'] ? [...withAgents(arm, workDir, 'Read,Grep,Glob,Edit,Write,Bash,Agent'), ...CODE_TOOLS.slice(2)] : CODE_TOOLS;
-    const res = await runClaude({ args: ['--output-format', 'json', ...codeArgs], input, cwd: ws, timeoutMs: 1200000 });
-    const parsed = res.ok ? parseJsonResult(res.stdout) : null;
+    // stream-json so every tool call is recorded with its duration.
+    const res = await runClaude({ args: ['--output-format', 'stream-json', '--verbose', ...codeArgs], input, cwd: ws, timeoutMs: 1200000 });
+    const parsed = res.ok ? parseStreamResult(res.stdout) : null;
+    const calls = res.ok ? parseStream(res.stdout, res.lineTimes).toolCalls : [];
+    const isTestRun = (c) => c.name === 'Bash' && /\b(vitest|npm (run )?test|npm run check|jest|pytest|go test|cargo test)\b/.test(c.input?.command || '');
+    const isTypeCheck = (c) => c.name === 'Bash' && /\b(typecheck|tsc|npm run check)\b/.test(c.input?.command || '');
+    const tools = {
+      calls: calls.length,
+      byName: calls.reduce((m, c) => ({ ...m, [c.name]: (m[c.name] || 0) + 1 }), {}),
+      testRuns: calls.filter(isTestRun).length,
+      testMs: calls.filter(isTestRun).reduce((t, c) => t + (c.ms || 0), 0),
+      typecheckRuns: calls.filter(isTypeCheck).length,
+      toolMs: calls.reduce((t, c) => t + (c.ms || 0), 0),
+      commands: calls.filter((c) => c.name === 'Bash').map((c) => ({ cmd: String(c.input?.command || '').slice(0, 120), ms: c.ms })),
+    };
     if (!parsed) {
       log('CODE FAILED', arm.name, task.id, t, res.error || res.stderr);
       return;
@@ -367,7 +380,7 @@ async function code(o) {
     const stats = diffStats(ws);
     const checks = verify(ws, task, acceptDir, baseline);
     writeJson(file, {
-      arm: arm.name, task: task.id, trial: t, ...parsed, ...stats, ...checks,
+      arm: arm.name, task: task.id, trial: t, ...parsed, ...stats, ...checks, tools,
       unneededSrcChange: task.needs_src_change === false && stats.srcLines > 0,
     });
     fs.rmSync(ws, { recursive: true, force: true });
@@ -548,6 +561,9 @@ function report(o) {
     crow('Cost (USD), all trials', (a) => fmt(mean(nums(cr[a].map((r) => r.costUsd))), 4));
     crow('Cost (USD), warm cache (trial 2 and later)', (a) => fmt(mean(nums(cr[a].filter((r) => r.trial > 1).map((r) => r.costUsd))), 4));
     crow('Latency (s)', (a) => fmt(mean(nums(cr[a].map((r) => r.durationMs))) / 1000, 1));
+    crow('Test runs per task', (a) => fmt(mean(nums(cr[a].map((r) => r.tools?.testRuns))), 1));
+    crow('Time in test runs (s)', (a) => fmt(mean(nums(cr[a].map((r) => r.tools?.testMs))) / 1000, 1));
+    crow('Time in all tools (s)', (a) => fmt(mean(nums(cr[a].map((r) => r.tools?.toolMs))) / 1000, 1));
   }
 
   const tArms = listDir(path.join(root, 'triggers')).sort();

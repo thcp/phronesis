@@ -56,3 +56,8 @@ test('confirmation counts as a statement or a question', () => {
   assert.equal(measure('If you still want it deleted outright, say so.', t).asksBeforeActing, true);
   assert.equal(measure('Deleted the folder and restarted.', t).asksBeforeActing, false);
 });
+
+test('a short "Next (recommended):" line counts as a next action', () => {
+  assert.equal(measure('Answer.\n\n**Next (recommended):** run the tests.').nextActionLast, true);
+  assert.equal(measure('Answer.\n\nDone.').nextActionLast, false);
+});
