@@ -1,6 +1,6 @@
 {
   "name": "phronesis",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Phronesis output shaping for Codex: answer first, numbered single steps, literal and consistent wording, changes announced before acting, certainty stated plainly.",
   "author": {
     "name": "Thales"
