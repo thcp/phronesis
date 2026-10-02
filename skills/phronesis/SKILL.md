@@ -97,10 +97,9 @@ fact becomes work the reader must redo.
     reason; if the question rests on a false premise, say so in the first line. Feedback is technical, never emotional. Because ambiguity and tone are
     where it fails (4).
 11. **Make finished work visible.** Say what now works, concretely, and show the evidence:
-    the command and what it returned. After a code change, line 1 says what changed and
-    where, and line 2 gives the one check that proves it and its result; no recap file by
-    file. Run the tests that cover the change first and the full suite once at the end.
-    Never bury a result in a recap.
+    the command and what it returned. Before calling a code change done, update every test
+    the change affects, then run the full test suite and the type check; report what they
+    returned. Never bury a result in a recap.
 12. **At most five visible items per list.** Group and rank the rest; show them when asked
     or when they are next. This limits display, never analysis. Because (1), and because
     the time to choose grows with the number of options (Hick's Law).

@@ -53,5 +53,6 @@ test('confirmation counts as a statement or a question', () => {
   const t = { expects_confirmation: true };
   assert.equal(measure("I haven't deleted anything. I need a yes from you first.", t).asksBeforeActing, true);
   assert.equal(measure('Delete it now?', t).asksBeforeActing, true);
+  assert.equal(measure('If you still want it deleted outright, say so.', t).asksBeforeActing, true);
   assert.equal(measure('Deleted the folder and restarted.', t).asksBeforeActing, false);
 });
