@@ -5,6 +5,8 @@
 //   node bench/bench.mjs judge    --suite S --out O --workspace W
 //   node bench/bench.mjs triggers --out O --arm A [--trials 1]
 //   node bench/bench.mjs audit    --suite S --out O --repo R --arm A [--trials 2]
+//   node bench/bench.mjs code     --suite S --out O --repo R --deps D --arm A [--trials 3]
+//   node bench/bench.mjs judge-code --suite S --out O --workspace W
 //   node bench/bench.mjs rescore  --suite S --out O
 //   node bench/bench.mjs report   --suite S --out O [--arms a,b,c] [--gate base,candidate]
 //
@@ -18,6 +20,7 @@ import { parseArm, hookContext } from './lib/arms.mjs';
 import { runClaude, parseJsonResult, parseStream, pool } from './lib/claude.mjs';
 import { measure, shapeChecks } from './lib/metrics.mjs';
 import { fitPrices } from './lib/stats.mjs';
+import { freshClone, diffStats, verify } from './lib/code.mjs';
 
 const HERE = path.dirname(new URL(import.meta.url).pathname);
 
@@ -297,6 +300,115 @@ ${out.chat}
   });
 }
 
+// ---------------------------------------------------------------- code
+
+const reminder = (t) => `<system-reminder>\n${t}\n</system-reminder>`;
+const CODE_TOOLS = ['--tools', 'Read,Grep,Glob,Edit,Write,Bash', '--allowedTools',
+  'Bash(npx vitest:*)', 'Bash(npm test:*)', 'Bash(npm run typecheck:*)', 'Bash(git diff:*)', 'Bash(git status:*)',
+  '--permission-mode', 'acceptEdits', '--max-turns', '40'];
+
+async function code(o) {
+  const tasks = readJson(path.join(o.suite, 'code-tasks.json')).filter((t) => !o.tasks || o.tasks.split(',').includes(t.id));
+  const workDir = path.join(o.out, 'work');
+  const arms = o.arm.map((s) => parseArm(s, workDir));
+  const trials = Number(o.trials || 3);
+  const acceptDir = path.join(o.suite, 'accept');
+
+  // Tests that already fail on the unchanged code are not counted against any arm.
+  const baseFile = path.join(o.out, 'raw', 'code-baseline.json');
+  if (!fs.existsSync(baseFile)) {
+    const ws = path.join(workDir, 'code-ws', 'baseline');
+    freshClone(o.repo, ws, o.deps);
+    const r = verify(ws, tasks[0], acceptDir, []);
+    writeJson(baseFile, { failures: r.newFailures, typecheck: r.typecheck });
+    log('code baseline: failing before any change:', r.newFailures.length);
+  }
+  const baseline = readJson(baseFile).failures;
+
+  // Warm-up per arm, with the code tools, as in replies().
+  if (!o['no-warmup']) {
+    await pool(arms, arms.length, async (arm) => {
+      const ws = path.join(workDir, 'code-ws', `warm-${arm.name}`);
+      freshClone(o.repo, ws, o.deps);
+      const session = hookContext(arm, 'SessionStart', {});
+      const input = session ? `${reminder(session)}\n\nReply with OK.` : 'Reply with OK.';
+      const res = await runClaude({ args: ['--output-format', 'json', ...CODE_TOOLS], input, cwd: ws });
+      log('code warm-up', arm.name, res.ok ? 'ok' : 'FAILED');
+    });
+  }
+
+  const jobs = [];
+  for (let t = 1; t <= trials; t++) for (const task of tasks) for (const arm of arms) jobs.push({ arm, task, t });
+  await pool(jobs, Number(o.concurrency || 3), async ({ arm, task, t }) => {
+    const file = path.join(o.out, 'raw', 'code', arm.name, `${task.id}__${t}.json`);
+    if (fs.existsSync(file)) return;
+    const ws = path.join(workDir, 'code-ws', `${arm.name}-${task.id}-${t}`);
+    freshClone(o.repo, ws, o.deps);
+    const session = hookContext(arm, 'SessionStart', {});
+    const turn = hookContext(arm, 'UserPromptSubmit', { prompt: task.prompt });
+    let input = turn ? `${task.prompt}\n\n${reminder(turn)}` : task.prompt;
+    if (session) input = `${reminder(session)}\n\n${input}`;
+    const res = await runClaude({ args: ['--output-format', 'json', ...CODE_TOOLS], input, cwd: ws, timeoutMs: 1200000 });
+    const parsed = res.ok ? parseJsonResult(res.stdout) : null;
+    if (!parsed) {
+      log('CODE FAILED', arm.name, task.id, t, res.error || res.stderr);
+      return;
+    }
+    const stats = diffStats(ws);
+    const checks = verify(ws, task, acceptDir, baseline);
+    writeJson(file, {
+      arm: arm.name, task: task.id, trial: t, ...parsed, ...stats, ...checks,
+      unneededSrcChange: task.needs_src_change === false && stats.srcLines > 0,
+    });
+    fs.rmSync(ws, { recursive: true, force: true });
+    log('code', arm.name, task.id, t, `accept ${checks.acceptPassed}, new failures ${checks.newFailures.length}, src lines ${stats.srcLines}`);
+  });
+}
+
+const CODE_RUBRIC = `You grade code changes made by a coding assistant. Each entry is the assistant's final
+message and the diff it made, for the same request, in the codebase in your working directory
+(read it to check claims). A reference describes the ideal change; it is a guide, not the only
+valid answer. Labels are random.
+
+For each entry give:
+- correctness, 1 to 5: the change does what was asked and nothing breaks. If the request was
+  already satisfied by existing code, the best answer says so and changes no source code.
+- minimality, 1 to 5: 5 means the smallest change that fully works; lower for unrequested
+  abstractions, files, options or refactors.
+- usefulness, 1 to 5: how well the reader can rely on it and move on.
+- clarity, 1 to 5: for a reader who is autistic and has ADHD: the final message says what changed
+  first, literally, easy to scan.
+
+Return only JSON: {"A": {"correctness": n, "minimality": n, "usefulness": n, "clarity": n, "note": "under 15 words"}, ...}`;
+
+async function judgeCode(o) {
+  const tasks = readJson(path.join(o.suite, 'code-tasks.json'));
+  const root = path.join(o.out, 'raw', 'code');
+  const arms = listDir(root).sort();
+  const tag = arms.join('+');
+  const jobs = [];
+  for (const task of tasks) for (let t = 1; t <= 5; t++) if (arms.some((a) => fs.existsSync(path.join(root, a, `${task.id}__${t}.json`)))) jobs.push({ task, t });
+  await pool(jobs, Number(o.concurrency || 4), async ({ task, t }) => {
+    const file = path.join(o.out, 'raw', 'judge-code', tag, `${task.id}__${t}.json`);
+    if (fs.existsSync(file)) return;
+    const entries = arms.map((arm) => ({ arm, f: path.join(root, arm, `${task.id}__${t}.json`) })).filter((e) => fs.existsSync(e.f))
+      .map((e) => ({ arm: e.arm, r: readJson(e.f) }));
+    const order = shuffled(entries, `${task.id}${t}code`);
+    const labels = Object.fromEntries(order.map((e, i) => [String.fromCharCode(65 + i), e.arm]));
+    const body = order.map((e, i) => `<entry id="${String.fromCharCode(65 + i)}">\n<message>\n${e.r.text}\n</message>\n<diff>\n${e.r.diff || '(no changes)'}\n</diff>\n</entry>`).join('\n\n');
+    const input = `${CODE_RUBRIC}\n\n<request>\n${task.prompt}\n</request>\n\n<reference>\n${task.reference}\n</reference>\n\n${body}`;
+    const res = await runClaude({ args: ['--output-format', 'json', '--tools', 'Read,Grep,Glob'], input, cwd: o.workspace });
+    const parsed = res.ok ? parseJsonResult(res.stdout) : null;
+    try {
+      const scores = JSON.parse(parsed.text.slice(parsed.text.indexOf('{'), parsed.text.lastIndexOf('}') + 1));
+      writeJson(file, { task: task.id, trial: t, labels, byArm: Object.fromEntries(Object.entries(scores).map(([l, v]) => [labels[l], v])) });
+      log('judged code', task.id, t);
+    } catch {
+      log('JUDGE CODE PARSE FAILED', task.id, t);
+    }
+  });
+}
+
 // ---------------------------------------------------------------- rescore
 
 // Recomputes the deterministic metrics of every saved reply from its text, with the
@@ -402,6 +514,31 @@ function report(o) {
     });
   }
 
+  const cArms = listDir(path.join(root, 'code')).filter((a) => arms.includes(a));
+  if (cArms.length) {
+    const cr = Object.fromEntries(cArms.map((a) => [a, listDir(path.join(root, 'code', a)).map((f) => readJson(path.join(root, 'code', a, f)))]));
+    const jd = listDir(path.join(root, 'judge-code')).sort((a, b) => b.split('+').length - a.split('+').length)[0];
+    const jc = jd ? listDir(path.join(root, 'judge-code', jd)).map((f) => readJson(path.join(root, 'judge-code', jd, f))) : [];
+    const jj = (a, k) => nums(jc.map((x) => x.byArm?.[a]?.[k]));
+    const crow = (label, f) => L.push(`| ${label} | ${cArms.map((a) => f(a)).join(' | ')} |`);
+    L.push('', '## Code tasks', '', `| Metric | ${cArms.join(' | ')} |`, `|---|${cArms.map(() => '---').join('|')}|`);
+    crow('Runs', (a) => cr[a].length);
+    crow('Hidden acceptance test passed', (a) => pct(rate(cr[a].map((r) => r.acceptPassed))));
+    crow('Runs with new test failures', (a) => pct(rate(cr[a].map((r) => r.newFailures.length > 0))));
+    crow('Type check passed', (a) => pct(rate(cr[a].map((r) => r.typecheck))));
+    crow('Changed source when none was needed', (a) => pct(rate(cr[a].filter((r) => r.task === 'code-health').map((r) => r.unneededSrcChange))));
+    crow('Source lines changed (mean)', (a) => fmt(mean(cr[a].map((r) => r.srcLines)), 1));
+    crow('Test lines changed (mean)', (a) => fmt(mean(cr[a].map((r) => r.testLines)), 1));
+    crow('Judge: correctness', (a) => fmt(mean(jj(a, 'correctness'))));
+    crow('Judge: minimality', (a) => fmt(mean(jj(a, 'minimality'))));
+    crow('Judge: usefulness', (a) => fmt(mean(jj(a, 'usefulness'))));
+    crow('Judge: clarity', (a) => fmt(mean(jj(a, 'clarity'))));
+    crow('Output tokens', (a) => fmt(mean(nums(cr[a].map((r) => r.outputTokens))), 0));
+    crow('Cost (USD), all trials', (a) => fmt(mean(nums(cr[a].map((r) => r.costUsd))), 4));
+    crow('Cost (USD), warm cache (trial 2 and later)', (a) => fmt(mean(nums(cr[a].filter((r) => r.trial > 1).map((r) => r.costUsd))), 4));
+    crow('Latency (s)', (a) => fmt(mean(nums(cr[a].map((r) => r.durationMs))) / 1000, 1));
+  }
+
   const tArms = listDir(path.join(root, 'triggers')).sort();
   if (tArms.length) {
     L.push('', '## Skill triggering', '', '| Arm | Skill | Should load: loaded (recall) | Should not load: stayed out | Precision |', '|---|---|---|---|---|');
@@ -451,7 +588,7 @@ function report(o) {
 
 const [cmd, ...rest] = process.argv.slice(2);
 const o = args(rest);
-const commands = { replies, judge, triggers, audit, rescore, report };
+const commands = { replies, judge, triggers, audit, code, 'judge-code': judgeCode, rescore, report };
 if (!commands[cmd]) {
   console.error('Usage: node bench/bench.mjs <replies|judge|triggers|audit|report> [options]. See bench/README.md.');
   process.exit(2);

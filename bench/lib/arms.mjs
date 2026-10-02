@@ -52,13 +52,33 @@ function matches(matcher, value) {
   return new RegExp(`^(?:${matcher})$`).test(value);
 }
 
+// A plugin declares hooks in hooks/hooks.json, or in .claude-plugin/plugin.json as an
+// inline object or as a path to a hooks file. All three are merged, as Claude Code does.
+function pluginHooks(dir) {
+  const read = (f) => {
+    try {
+      return JSON.parse(fs.readFileSync(f, 'utf8'));
+    } catch {
+      return null;
+    }
+  };
+  const sources = [read(path.join(dir, 'hooks', 'hooks.json'))?.hooks];
+  const manifest = read(path.join(dir, '.claude-plugin', 'plugin.json'));
+  if (typeof manifest?.hooks === 'string') {
+    const f = path.resolve(dir, manifest.hooks);
+    if (f !== path.join(dir, 'hooks', 'hooks.json')) sources.push(read(f)?.hooks);
+  } else if (manifest?.hooks) sources.push(manifest.hooks.hooks || manifest.hooks);
+  const merged = {};
+  for (const h of sources.filter(Boolean)) for (const [event, groups] of Object.entries(h)) (merged[event] ||= []).push(...groups);
+  return merged;
+}
+
 // Runs every hook of `event` in the arm's hooks.json, as Claude Code would with
 // always-on turned on, and returns the context they add.
 export function hookContext(arm, event, input) {
   if (!arm.dir) return '';
-  const file = path.join(arm.dir, 'hooks', 'hooks.json');
-  if (!fs.existsSync(file)) return '';
-  const groups = JSON.parse(fs.readFileSync(file, 'utf8')).hooks?.[event] || [];
+  const groups = pluginHooks(arm.dir)[event] || [];
+  if (!groups.length) return '';
 
   // Fixed paths, not fresh temporary ones: hook output can name these paths (always-on
   // names its flag file), and text that changes on every run defeats the prompt cache,

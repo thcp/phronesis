@@ -21,3 +21,13 @@ test('hook context is identical across runs', () => {
 test('the control arm injects nothing', () => {
   assert.equal(hookContext(parseArm('c=none', os.tmpdir()), 'SessionStart', {}), '');
 });
+
+test('hooks declared inline in .claude-plugin/plugin.json are run', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'phr-plugin-'));
+  fs.mkdirSync(path.join(dir, '.claude-plugin'));
+  fs.writeFileSync(path.join(dir, '.claude-plugin', 'plugin.json'), JSON.stringify({
+    name: 'x',
+    hooks: { SessionStart: [{ hooks: [{ type: 'command', command: 'node -e "process.stdout.write(\'inline rules\')"' }] }] },
+  }));
+  assert.equal(hookContext(parseArm(`x=dir:${dir}`, os.tmpdir()), 'SessionStart', {}), 'inline rules');
+});
