@@ -376,7 +376,10 @@ function report(o) {
   row('  cache read', (a) => fmt(mean(nums(rows[a].map((r) => r.cacheReadTokens))), 0));
   row('Injected context (chars)', (a) => fmt(mean(rows[a].map((r) => r.injectedChars)), 0));
   row('Latency (s)', (a) => fmt(mean(nums(rows[a].map((r) => r.durationMs))) / 1000, 1));
-  row('Cost (USD)', (a) => fmt(mean(nums(rows[a].map((r) => r.costUsd))), 4));
+  row('Cost (USD), all trials', (a) => fmt(mean(nums(rows[a].map((r) => r.costUsd))), 4));
+  // Trial 1 of a task is the first time that exact conversation is seen and pays to write
+  // it into the cache; later trials match a session that is already running.
+  row('Cost (USD), warm cache (trial 2 and later)', (a) => fmt(mean(nums(rows[a].filter((r) => r.trial > 1).map((r) => r.costUsd))), 4));
   row('Tool turns', (a) => fmt(mean(nums(rows[a].map((r) => r.turns))), 1));
 
   // Where the money goes: prices per token type are fitted to the billed cost of every
