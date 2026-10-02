@@ -55,18 +55,6 @@ same content in plain wording.
   agent models, private files present). Report its findings as verified; judge the rest.
 </rules>
 
-<routing>
-Spend the expensive model only on judgement. The Phronesis helper agents run on a small model:
-- File inventory, manifests, CI and lint configuration, and finding where things live (phase 1),
-  and scanning candidate repositories for risky code (phase 2): delegate the reading to
-  `scout`, and to several in parallel only when the parts are independent.
-- Long commands, such as running a repo's tests to see whether the gate passes: `checker`.
-- Run `check-setup.mjs` and `drift-check.mjs` yourself; their output is short.
-- Grading candidates against the documentation (phase 3), model and effort choices (phase 4),
-  the test plan (phase 5) and the final recommendations: yourself, on the session model,
-  because a wrong recommendation costs more than the tokens saved.
-</routing>
-
 <mode name="scan">
 When the maintainer says yes to the first-run offer, run only phases 0 and 1, read-only. In
 phase 0 use A for both preferences without asking, and say so, so the first-run question is

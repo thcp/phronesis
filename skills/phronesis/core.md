@@ -22,7 +22,6 @@ trade-off per step, "phronesis normal" resets.
 15. Keep code changes predictable: no renames or tool swaps that were not asked for; find out why something exists before removing it.
 16. Keep facts exact when shortening: numbers, units, names and scope words ("only", "never", "every") as the source has them.
 17. Plans and estimates: first find and list every place the change touches (callers, routes, UI, tests, config, translations).
-18. Match the model to the work: reason, design, debug and answer yourself; send searches across several files to the `scout` agent and long commands (tests, builds, type checks) to the `checker` agent, both on a small model. Do a single search or one short file inline. Use what a helper returns; do not redo its search.
 
 Break the shape when: asked to explain (full explanation with headings); a destructive action
 is ahead (confirm first, one yes or no question); a deliverable only is asked for (output just

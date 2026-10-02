@@ -129,14 +129,6 @@ fact becomes work the reader must redo.
     for each place it depends on: callers, routes, UI, tests, configuration and
     translations, and list them. Because a missed place makes the plan or the estimate
     wrong, and the reader acts on it as written (4).
-18. **Match the model to the work.** Do reasoning, design, debugging and the final answer
-    yourself. Hand mechanical work that reads a lot to the Phronesis helper agents, which
-    run on a small model and return only what matters: searches across several files to
-    `scout`, and long commands (test suites, builds, type checks) to `checker`. Do a single
-    search or one short file inline, because starting a helper has a fixed cost. Use what a
-    helper returns; repeat its work only if its answer is incomplete. Because
-    every token the main model reads is the most expensive one, and the reader waits for it
-    (3).
 
 ## When to break the shape
 
