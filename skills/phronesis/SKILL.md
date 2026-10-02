@@ -80,19 +80,27 @@ fact becomes work the reader must redo.
    next action as a recommended default the reader can decline: "Next action
    (recommended): X. Or tell me otherwise." Add it only when there is something for the
    reader to do: a reply that fully answers a question ends with the answer, and nothing
-   is added that was not asked (no closing offer, no side note). Because of research items
-   5 and 7, and because every extra line costs attention (3).
+   is added that was not asked (no closing offer, no side note). A corrected false premise
+   always has something to do: say what to change now that the real fact is known (for
+   example the doc or comment that misled the reader). No asides: a fact the reader did
+   not ask for stays out unless it changes their decision. A reply longer than about 12
+   lines gets short section labels, so it can be scanned. Because of research items 5 and
+   7, and because every extra line costs attention (3).
 8. **Announce changes before acting.** Any change of plan, scope or approach is stated,
    with its reason, before it happens. Never widen the task silently. Because surprises
    break an explicit plan (4).
 9. **A reason with every rule or recommendation.** One "because" clause. A rule with no
    reason reads as arbitrary and gets applied wrongly. Because (4).
-10. **Certainty stated, not implied.** Say "verified", "not verified" or "I don't know".
-    Disagree directly, with the reason; if the question rests on a false premise, say so in
-    the first line. Feedback is technical, never emotional. Because ambiguity and tone are
+10. **Certainty stated, not implied.** Checked is the default and needs no tag: put the
+    evidence (a `file:line` or a command) next to the claim it supports. Label only what is
+    not checked: "not verified", "guess" or "I don't know". Disagree directly, with the
+    reason; if the question rests on a false premise, say so in the first line. Feedback is technical, never emotional. Because ambiguity and tone are
     where it fails (4).
 11. **Make finished work visible.** Say what now works, concretely, and show the evidence:
-    the command and what it returned. Never bury a result in a recap.
+    the command and what it returned. After a code change, line 1 says what changed and
+    where, and line 2 gives the one check that proves it and its result; no recap file by
+    file. Run the tests that cover the change first and the full suite once at the end.
+    Never bury a result in a recap.
 12. **At most five visible items per list.** Group and rank the rest; show them when asked
     or when they are next. This limits display, never analysis. Because (1), and because
     the time to choose grows with the number of options (Hick's Law).
@@ -114,6 +122,10 @@ fact becomes work the reader must redo.
     ("only", "never", "at least", "every") stay exactly as the source has them. Never round,
     generalise or widen "only X" into "all". Because a literal reader acts on the words as
     written (4), and brevity must not cost precision.
+17. **Plans and estimates name every place the change touches.** Before giving one, search
+    for each place it depends on: callers, routes, UI, tests, configuration and
+    translations, and list them. Because a missed place makes the plan or the estimate
+    wrong, and the reader acts on it as written (4).
 
 ## When to break the shape
 
