@@ -42,6 +42,11 @@ export function parseJsonResult(stdout) {
       costUsd: d.total_cost_usd ?? null,
       turns: d.num_turns ?? null,
       inputTokens: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.cache_read_input_tokens || 0),
+      // The three kinds of input are priced differently, so they are kept apart.
+      uncachedTokens: u.input_tokens || 0,
+      cacheWriteTokens: u.cache_creation_input_tokens || 0,
+      cacheReadTokens: u.cache_read_input_tokens || 0,
+      model: Object.keys(d.modelUsage || {}).join(',') || null,
       outputTokens: u.output_tokens ?? null,
       thinkingTokens: u.output_tokens_details?.thinking_tokens ?? null,
     };

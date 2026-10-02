@@ -89,7 +89,8 @@ describe groups, not any one person.
 isolated headless sessions, and measures precision (required facts, false claims checked
 against the code by a blind judge), shape (answer in line 1, preamble, list length, certainty,
 plain ASCII), cost (tokens, latency) and skill triggering. Results for this release:
-[bench/results/RESULTS.md](bench/results/RESULTS.md).
+[bench/results/RESULTS.md](bench/results/RESULTS.md). Against Ponytail and caveman:
+[bench/results/COMPARISON.md](bench/results/COMPARISON.md).
 
 ## claude-setup-audit
 

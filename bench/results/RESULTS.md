@@ -4,6 +4,30 @@ Run on 2026-10-02 with `bench/` (see [bench/README.md](../README.md)), Claude Co
 the plan's default model, against a private TypeScript application (180 TypeScript files,
 with tests). The task suite and raw replies stay private; this page has aggregate numbers only.
 
+## Correction (2026-10-02): cost figures below are wrong
+
+The cost figures in this report overstate what Phronesis costs. Two benchmark artifacts, not
+Phronesis, caused the difference:
+
+1. The harness gave each run a fresh temporary flag path, and the always-on hook names that
+   path, so the injected text changed on every run and was never served from the prompt
+   cache. Fixed in the harness, with a regression test.
+2. The control's prompts were already cached from earlier runs, while each new arm paid its
+   first-sight cache write.
+
+Re-measured with the fixes (control against v0.3.0, 10 tasks x 3 trials, the same suite):
+
+| Per reply | control | v0.3.0 | Difference (95% interval) |
+|---|---|---|---|
+| Cost, warm cache (trials 2 and 3) | $0.0946 | $0.0936 | -$0.001 (-$0.013 to +$0.011) |
+| Output tokens, warm cache | 1345 | 1206 | -140 (-279 to -1) |
+| Cost, first sight of a conversation (trial 1) | $0.0934 | $0.1513 | +$0.058 |
+
+With a warm cache, as in a running session, v0.3.0 costs the same as no Phronesis and writes
+fewer output tokens. The first-sight cost is the one-time write of a new conversation into the
+cache; in a real session it is paid once. Ignore the "Cost (USD)" rows and the cost claims in
+the summary below.
+
 **Arms.** `control`: no Phronesis. `v0.2.0`: the previous release (commit 11f6066).
 `v0.3.0`: this release. `v0.3.0-alt`: a variant of rule 7 that keeps a next action after
 false premises and risky requests; it was benchmarked and not shipped (see below).
@@ -17,7 +41,7 @@ the code. Replies run with read-only tools and always-on enabled.
 
 1. **v0.3.0 against v0.2.0:** clearer replies (judge clarity 4.37 against 4.17), fewer false
    claims (0.03 against 0.17 per reply), all required facts present (100% against 95%), 15%
-   fewer words, 63% less injected context and 16% lower cost per reply. The skill now loads
+   fewer words and 63% less injected context (cost: see the correction above). The skill now loads
    on its own when a reader asks for this style (3 of 4 prompts, against 0 of 4).
 2. **Release gate passed:** precision did not regress against v0.2.0.
 3. **Open issue:** the control scored about 0.2 higher on usefulness than every Phronesis
