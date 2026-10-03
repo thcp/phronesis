@@ -1,6 +1,6 @@
 ---
 name: phronesis
-description: 'Phronesis: shape every reply for a reader who is autistic (level 1) and has ADHD. Answer or next action first, numbered single steps, state restated each turn, concrete time estimates, literal and consistent wording, plan changes announced before acting, certainty stated plainly. Use when the reader says they have ADHD or are autistic or neurodivergent, asks for shorter, literal, answer-first or easier-to-follow replies, says they lose track of long answers, or invokes /phronesis. Stays on until "stop phronesis" or "normal mode".'
+description: 'Phronesis: straight, literal, answer-first replies for agent work. Answer or next action first, numbered single steps, state restated each turn, concrete time estimates, literal and consistent wording, plan changes announced before acting, certainty stated plainly. Built on research on ADHD and autistic (level 1) readers. Use when the reader asks for shorter, literal, answer-first or easier-to-follow replies, says they lose track of long answers, says they have ADHD or are autistic or neurodivergent, or invokes /phronesis. Stays on until "stop phronesis" or "normal mode".'
 user-invocable: true
 license: MIT
 ---

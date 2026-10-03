@@ -9,7 +9,7 @@
 
 Replies from your AI coding agent that are easy to read and easy to act on:<br>
 the answer first, one step at a time, nothing left to guess.<br>
-Designed around attention and clarity. MIT license.
+Built on research on ADHD and autistic readers, and useful to anyone who wants direct replies. MIT license.
 
 *Phronesis* is Greek for practical wisdom: knowing what to do next.
 

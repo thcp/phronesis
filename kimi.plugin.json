@@ -1,7 +1,7 @@
 {
   "name": "phronesis",
   "version": "0.5.0",
-  "description": "Phronesis: replies shaped for a reader who is autistic (level 1) and has ADHD.",
+  "description": "Phronesis: straight, literal, answer-first replies. Built on research on ADHD and autistic readers.",
   "license": "MIT",
   "skills": "./skills/",
   "interface": {
