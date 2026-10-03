@@ -95,6 +95,37 @@ plain ASCII), cost (tokens, latency) and skill triggering. Results for this rele
 [bench/results/RESULTS.md](bench/results/RESULTS.md). Against Ponytail and caveman:
 [bench/results/COMPARISON.md](bench/results/COMPARISON.md).
 
+## Evals
+
+`evals/` holds 10 made-up cases that anyone can run with Claude Code's own command:
+
+```bash
+claude plugin eval . --no-publish
+```
+
+Each case runs with and without Phronesis, 3 runs per arm, and is scored by regex checks
+that need no judge model. Use `--no-publish`: by default the command also publishes its
+report to claude.ai (as a private artifact) when your account supports it. The cases test
+the skill when it is invoked; the always-on core needs an opt-in file in your config folder
+(`~/.claude/.phronesis-always`), which an eval sandbox does not have, so it is measured
+only by the private benchmark.
+
+Last run (Opus 5.5, list-price estimate $3.9, not billed on a subscription): most cases are
+at the ceiling in both arms. The plugin lifts the next-action case (+0.50), the
+uncertain-cause case (+0.33) and the estimate case (+0.22). The command exits 1 when any
+case scores below 1.0; pass `--threshold 0.8` to allow noise.
+
+Safety: do not pass `--scaffold` or `--allow-tools`, and do not run evals in CI on pull
+requests from forks with `--trust-plugin`. Results go to `evals/results/`, which git ignores.
+Two scripts help keep private details out of anything you share:
+
+- `node scripts/leak-check.mjs [--deny list.txt] <path>` reports emails, keys, IP addresses,
+  credential file names, and values it finds on your machine (home folder, user name, host
+  name, git remote). `--deny` takes your own list of terms, one per line, kept outside the
+  repository; `--scrub` prints the text with findings replaced.
+- `node scripts/reply-check.mjs < reply.txt` checks one reply against the shape rules, with
+  no model call.
+
 ## phronesis-audit
 
 Claude Code only, nothing extra to install. It checks your repository, picks the skills,
