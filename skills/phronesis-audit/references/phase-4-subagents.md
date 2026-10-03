@@ -3,6 +3,13 @@ For each proposed subagent, choose the model and effort from the current effort 
 today (https://platform.claude.com/docs/en/build-with-claude/effort), not from memory. Defaults
 differ by model, so do not copy a fixed table. Mark each rule below as Anthropic (from that
 page) or Ours (this skill's own choice), and keep the mark in the proposal.
+Proposing no subagent is a valid result: if the repo has no recurring work that a separate
+context would do better, say so and propose none, because every agent description is read on
+every turn.
+Name the model with its ID from the models overview, read today
+(https://platform.claude.com/docs/en/about-claude/models/overview), and say so. If you did not
+read that page, label the model "not verified" and do not present "mid-tier" or "most capable"
+as a model name.
 - Code work (writing, refactoring, reviewing code): effort medium at the lowest, never low,
   because code quality comes first (Ours). Medium for well-specified tasks; high for hard or
   long ones (Anthropic: medium for well-specified agentic coding, high for harder or longer
