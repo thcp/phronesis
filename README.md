@@ -19,8 +19,9 @@ One plugin, two skills:
 - **phronesis** shapes every reply.
 - **phronesis-audit** checks your repository's Claude Code setup, in the same style.
 
-**Status:** early version. Tested on Claude Code and OpenCode in parts. Other agents are
-not tested yet.
+**Status:** early version. Replies are measured on Claude Code only. Codex, Gemini CLI, Qwen
+Code, OpenCode and `npx skills` install and list both skills; Kimi Code and Antigravity are not
+tested. Details: [INSTALL.md](INSTALL.md#what-is-tested).
 
 ## Install
 
