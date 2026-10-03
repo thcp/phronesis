@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import { findings, parseDeny, rules, scrub } from '../leak-check.mjs';
 
@@ -42,9 +44,23 @@ test('the shipped eval cases contain nothing the generic detectors flag', () => 
   assert.equal(r.status, 0, r.stdout);
 });
 
-test('leak-check treats the plugin own name as public and skips git-ignored files', () => {
+test('leak-check treats the plugin own name as public', () => {
   const names = rules({ cwd: process.cwd() }).map(([label]) => label);
   assert.ok(!names.includes('git repository name'));
-  const r = run('scripts/leak-check.mjs', ['evals/results'], '');
-  assert.equal(r.status, 0, r.stdout);
+});
+
+test('leak-check skips git-ignored files and reports the rest', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leak-'));
+  const script = path.resolve('scripts/leak-check.mjs');
+  const git = (...a) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q');
+  fs.writeFileSync(path.join(dir, '.gitignore'), 'ignored/\n');
+  fs.mkdirSync(path.join(dir, 'ignored'));
+  fs.writeFileSync(path.join(dir, 'ignored', 'a.txt'), 'mail a@b.example\n');
+  fs.writeFileSync(path.join(dir, 'shared.txt'), 'mail a@b.example\n');
+  const skip = spawnSync('node', [script, 'ignored'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(skip.status, 0, skip.stdout);
+  const found = spawnSync('node', [script, 'shared.txt'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(found.status, 1);
+  assert.match(found.stdout, /email address/);
 });
