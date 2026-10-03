@@ -76,7 +76,7 @@ Built on: ayghri/i-have-adhd (MIT), https://github.com/ayghri/i-have-adhd
 
 ## Engineering evidence used by the audit
 
-These support the claude-setup-audit skill, not the reply rules, and are not about
+These support the phronesis-audit skill, not the reply rules, and are not about
 neurodivergent readers. Read 2026-10-01.
 
 - Becker, Rush, Barnes and Rein, "Measuring the Impact of Early-2025 AI on Experienced

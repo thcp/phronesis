@@ -53,7 +53,7 @@ for (const f of files.filter((f) => f.endsWith('.md'))) {
 }
 
 // 5. Skills
-const res = spawnSync('node', [path.join(ROOT, 'skills/claude-setup-audit/scripts/check-setup.mjs'), ROOT, '--json'], { encoding: 'utf8' });
+const res = spawnSync('node', [path.join(ROOT, 'skills/phronesis-audit/scripts/check-setup.mjs'), ROOT, '--json'], { encoding: 'utf8' });
 for (const finding of JSON.parse(res.stdout).findings.filter((x) => x.severity === 'high')) fail(finding.file || 'skills', finding.message);
 
 if (errors.length) {

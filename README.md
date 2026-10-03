@@ -17,7 +17,7 @@ Designed around attention and clarity. MIT license.
 
 One plugin, two skills:
 - **phronesis** shapes every reply.
-- **claude-setup-audit** checks your repository's Claude Code setup, in the same style.
+- **phronesis-audit** checks your repository's Claude Code setup, in the same style.
 
 **Status:** early version. Tested on Claude Code and OpenCode in parts. Other agents are
 not tested yet.
@@ -29,7 +29,7 @@ claude plugin marketplace add thcp/phronesis
 claude plugin install phronesis@phronesis
 ```
 
-Then type `/phronesis:phronesis` for the reply style, or `/phronesis:claude-setup-audit`
+Then type `/phronesis:phronesis` for the reply style, or `/phronesis:phronesis-audit`
 for the audit. Say "stop phronesis" to turn the style off.
 
 - **Always on, no typing:** create the file `~/.claude/.phronesis-always` (needs Node). Each
@@ -94,7 +94,7 @@ plain ASCII), cost (tokens, latency) and skill triggering. Results for this rele
 [bench/results/RESULTS.md](bench/results/RESULTS.md). Against Ponytail and caveman:
 [bench/results/COMPARISON.md](bench/results/COMPARISON.md).
 
-## claude-setup-audit
+## phronesis-audit
 
 Claude Code only, nothing extra to install. It checks your repository, picks the skills,
 agents and hooks that fit, flags missing tests, trims your CLAUDE.md, and plans how to

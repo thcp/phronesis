@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Session-start drift check for a setup made by the claude-setup-audit skill.
+// Session-start drift check for a setup made by the phronesis-audit skill.
 //
 //   node drift-check.mjs            compare .claude/phronesis-lock.json with upstream
 //   node drift-check.mjs --hash URL print the content hash of a documentation page
@@ -111,7 +111,7 @@ async function main() {
     [
       `Phronesis drift check: ${changes.length} change(s) since the setup was validated on ${lock.validated || 'an unknown date'}:`,
       ...changes.map((c) => `- ${c}`),
-      'In your first message, tell the user what changed and what it could affect in this setup, and offer to re-validate those pieces with the claude-setup-audit skill.',
+      'In your first message, tell the user what changed and what it could affect in this setup, and offer to re-validate those pieces with the phronesis-audit skill.',
       '',
     ].join('\n'),
   );
