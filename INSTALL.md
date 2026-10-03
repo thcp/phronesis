@@ -3,10 +3,24 @@
 The commands below use the repository `thcp/phronesis`. Each agent reads the
 same `skills/phronesis/SKILL.md`, so the rules are identical everywhere.
 
-Tested on Claude Code (manifest validation, the always-on hook) and OpenCode (the plugin
-module, run outside OpenCode). The other routes follow the formats used by
-[i-have-adhd](https://github.com/ayghri/i-have-adhd), which tests them in CI, and have not
-been run against this repository yet.
+## What is tested
+
+"Installs" means: installed from a local clone of this repository into an empty home folder,
+and the agent then listed both skills. No model was called, so replies on these agents are not
+tested; only Claude Code replies are measured (see `bench/results/`). Checked on 2026-10-03.
+
+| Agent | Status | What was checked |
+|---|---|---|
+| Claude Code 2.1 | Tested | `claude plugin validate`, always-on hook tests in CI, replies benchmarked |
+| Codex CLI 0.160 | Installs | `codex plugin marketplace add`, `codex plugin add`; both skills in the plugin cache |
+| Gemini CLI 0.62 | Installs | `gemini extensions install`; `GEMINI.md` and both skills listed |
+| Qwen Code 0.24 | Installs | `qwen extensions install`; both skills listed (it first asks which plugin to install) |
+| OpenCode 1.18 | Installs | plugin loads; both skills and `/phronesis` registered; always-on not checked in a session |
+| `npx skills` | Installs | both skills copied into `.agents/skills/`; whether Cursor or Amp then loads them is not checked |
+| Kimi Code CLI | Not tested | install runs inside a logged-in session |
+| Antigravity | Not tested | no CLI available to the test |
+
+The routes follow the formats used by [i-have-adhd](https://github.com/ayghri/i-have-adhd).
 
 ## Claude Code
 
