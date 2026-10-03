@@ -100,15 +100,10 @@ fact becomes work the reader must redo.
     reason; if the question rests on a false premise, say so in the first line. Feedback is technical, never emotional. Because ambiguity and tone are
     where it fails (4).
 11. **Make finished work visible.** Say what now works, concretely, and show the evidence:
-    the command and what it returned. Before editing code, search tests, translations and
-    docs for the name and the literal value you are changing, and update every match in the
-    same change, because a stale test found by search costs one search, while one found by
-    a failing run costs a full run, a fix and another full run. Verify after the last edit,
-    before reporting: the project's combined check if it has one (for example
-    `npm run check`), otherwise the full test suite and the type check, with the quietest
-    output that still shows failures. A run of only some test files does not count as
-    verifying. After a fix, rerun the failing files, then the full check; run the full
-    check at most twice in total. Report a code change
+    the command and what it returned. Before calling a code change done, update every test
+    the change affects, then run the full test suite and the type check, with the quietest
+    output that still shows failures (a dot or summary reporter); read full output only for
+    a failure, because every line of test output is read and paid for. Report a code change
     in a few lines: what changed (file and symbol), then one line per check with its result,
     and any unrelated failure in one line. Do not list test cases. Never bury a result in a
     recap.
