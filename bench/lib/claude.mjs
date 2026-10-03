@@ -6,13 +6,22 @@ import { spawn } from 'node:child_process';
 
 const ISOLATION = ['--setting-sources', 'project', '--strict-mcp-config', '--no-session-persistence'];
 
+// Every run is pinned to one model, so a change of the user's default model cannot mix
+// models inside one comparison. Override with BENCH_MODEL or an explicit --model in args.
+export const BENCH_MODEL = process.env.BENCH_MODEL || 'claude-opus-5-5';
+
+export function buildArgs(args) {
+  const pinned = args.includes('--model') ? [] : ['--model', BENCH_MODEL];
+  return ['-p', ...ISOLATION, ...pinned, ...args];
+}
+
 // Spawns claude with `args`, writes `input` to stdin, resolves with stdout text.
 // Never rejects: a failed run is returned as { ok: false, error } so one bad run
 // cannot stop a benchmark.
 export function runClaude({ args, input, cwd, timeoutMs = 600000 }) {
   return new Promise((resolve) => {
     const started = Date.now();
-    const child = spawn('claude', ['-p', ...ISOLATION, ...args], { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn('claude', buildArgs(args), { cwd, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';
     let stderr = '';
     // Arrival time of each stdout line, so stream-json tool calls can be timed.

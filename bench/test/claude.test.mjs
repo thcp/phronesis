@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseStream, parseStreamResult } from '../lib/claude.mjs';
+import { buildArgs, BENCH_MODEL, parseStream, parseStreamResult } from '../lib/claude.mjs';
 
 const lines = [
   { type: 'system', subtype: 'init' },
@@ -22,4 +22,12 @@ test('the stream result has the same fields as JSON output', () => {
   assert.equal(r.costUsd, 0.5);
   assert.equal(r.cacheWriteTokens, 10);
   assert.equal(r.outputTokens, 40);
+});
+
+test('buildArgs pins the model unless the caller sets one', () => {
+  const a = buildArgs(['--output-format', 'json']);
+  assert.equal(a[a.indexOf('--model') + 1], BENCH_MODEL);
+  const b = buildArgs(['--model', 'x', '--output-format', 'json']);
+  assert.equal(b.filter((v) => v === '--model').length, 1);
+  assert.equal(b[b.indexOf('--model') + 1], 'x');
 });
