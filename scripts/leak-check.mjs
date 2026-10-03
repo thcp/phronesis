@@ -14,6 +14,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const DETECTORS = [
   ['email address', /\b[\w.+-]+@[\w-]+(\.[\w-]+)+\b/g],
@@ -87,7 +88,7 @@ function notIgnored(files) {
   return files.filter((f) => !ignored.has(f));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
   const take = (flag) => { const i = args.indexOf(flag); return i > -1 ? args.splice(i, 2)[1] : null; };
   const denyFile = take('--deny') || process.env.PHRONESIS_DENYLIST || null;
