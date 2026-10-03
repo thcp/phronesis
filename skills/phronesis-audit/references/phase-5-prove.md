@@ -4,7 +4,8 @@ Following the test-and-evaluate pages, define success before installing anything
   not. A skill that does not trigger, or triggers on everything, is not working.
 - Task tests: for each subagent, two or three real tasks from this repo's history with a
   known good outcome, run at the chosen model and effort, then one level lower to see if
-  it still holds.
+  it still holds. For code work, do not test below medium: start at the chosen level and test
+  one level higher only if the result is wrong.
 - Guardrail checks: hooks fire on the intended events only; no skill or agent can write
   outside the repo or reach the network unless that is its job.
 - Load check after install: in a fresh subagent with no conversation history, give one prompt
