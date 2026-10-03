@@ -1,6 +1,6 @@
 {
   "name": "phronesis",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Phronesis for Qwen Code: replies shaped for a reader who is autistic (level 1) and has ADHD.",
   "skills": "skills"
 }
