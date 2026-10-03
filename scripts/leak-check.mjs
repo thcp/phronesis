@@ -83,9 +83,10 @@ function walk(p) {
 
 // Files that git ignores are never shared by git, so they are not reported.
 function notIgnored(files) {
-  const r = spawnSync('git', ['check-ignore', '--stdin'], { input: files.join('\n'), encoding: 'utf8' });
-  const ignored = new Set(r.stdout.split('\n').filter(Boolean));
-  return files.filter((f) => !ignored.has(f));
+  const posix = (f) => f.split(path.sep).join('/');
+  const r = spawnSync('git', ['check-ignore', '--stdin', '-z'], { input: files.map(posix).join('\0'), encoding: 'utf8' });
+  const ignored = new Set(r.stdout.split('\0').filter(Boolean));
+  return files.filter((f) => !ignored.has(posix(f)));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
