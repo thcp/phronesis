@@ -1,6 +1,6 @@
 {
   "name": "phronesis",
-  "description": "Phronesis: shape every reply for a reader who is autistic (level 1) and has ADHD, and audit a repository's Claude Code setup in the same shape. Answer first, numbered single steps, real time estimates, literal wording, changes announced before acting, certainty stated plainly.",
+  "description": "Phronesis: straight, literal, answer-first replies from your coding agent, and an audit of your Claude Code setup in the same style. Numbered single steps, real time estimates, certainty stated plainly. Built on research on ADHD and autistic readers.",
   "version": "0.5.0",
   "author": {
     "name": "Thales"
