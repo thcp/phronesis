@@ -5,7 +5,8 @@
 //   3. no decorative characters (em or en dash, curly quotes, arrows, ellipsis, emoji) in
 //      tracked text files, because they turn into mojibake in release tooling;
 //   4. every relative Markdown link points to a file that exists;
-//   5. the skills pass check-setup.mjs with no high findings.
+//   5. the skills pass check-setup.mjs with no high findings;
+//   6. every eval case has a prompt and a grader, and nothing in evals/ trips leak-check.mjs.
 // Plain Node, no packages. Exits 1 when any check fails.
 
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -55,6 +56,19 @@ for (const f of files.filter((f) => f.endsWith('.md'))) {
 // 5. Skills
 const res = spawnSync('node', [path.join(ROOT, 'skills/phronesis-audit/scripts/check-setup.mjs'), ROOT, '--json'], { encoding: 'utf8' });
 for (const finding of JSON.parse(res.stdout).findings.filter((x) => x.severity === 'high')) fail(finding.file || 'skills', finding.message);
+
+// 6. Evals
+const evalsDir = path.join(ROOT, 'evals');
+if (fs.existsSync(evalsDir)) {
+  for (const c of fs.readdirSync(evalsDir, { withFileTypes: true }).filter((d) => d.isDirectory() && d.name !== 'results')) {
+    const dir = path.join(evalsDir, c.name);
+    if (!fs.existsSync(path.join(dir, 'prompt.md'))) fail(`evals/${c.name}`, 'no prompt.md');
+    const graders = path.join(dir, 'graders');
+    if (!fs.existsSync(graders) || !fs.readdirSync(graders).some((f) => f.endsWith('.md'))) fail(`evals/${c.name}`, 'no grader in graders/');
+  }
+  const leak = spawnSync('node', [path.join(ROOT, 'scripts/leak-check.mjs'), evalsDir], { encoding: 'utf8' });
+  if (leak.status !== 0) for (const l of leak.stdout.split('\n').filter(Boolean)) fail('evals', `possible private detail: ${l}`);
+}
 
 if (errors.length) {
   console.error(`check: ${errors.length} problem(s)\n${errors.map((e) => `- ${e}`).join('\n')}`);
