@@ -5,8 +5,10 @@ import test from 'node:test';
 // core.md is the short copy of the rules in SKILL.md. This test fails when the rule numbers
 // differ or a rule loses a key phrase in either file, so an edit to one forces the other.
 
-const skill = fs.readFileSync('skills/phronesis/SKILL.md', 'utf8');
-const core = fs.readFileSync('skills/phronesis/core.md', 'utf8');
+// Windows checkouts may use CRLF; normalize so the section markers match.
+const read = (p) => fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n');
+const skill = read('skills/phronesis/SKILL.md');
+const core = read('skills/phronesis/core.md');
 
 // Rule bodies keyed by number. A rule starts at "N. " at the start of a line and runs until
 // the next rule or the first blank line, so wrapped lines are part of it.
