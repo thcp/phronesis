@@ -48,9 +48,14 @@ export function runtimeValues(cwd = process.cwd()) {
 }
 
 export function parseDeny(text) {
-  return text.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')).map((l) => {
+  return text.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#')).map((l, i) => {
     const m = l.match(/^\/(.+)\/([a-z]*)$/);
-    return [`list entry ${l}`, m ? new RegExp(m[1], m[2].includes('g') ? m[2] : m[2] + 'g') : new RegExp(esc(l), 'gi')];
+    try {
+      return [`custom-deny-${i + 1}`, m ? new RegExp(m[1], m[2].includes('g') ? m[2] : m[2] + 'g') : new RegExp(esc(l), 'gi')];
+    } catch {
+      // RegExp errors include the pattern: never forward them to a shared report.
+      throw new Error(`Invalid custom deny pattern at entry ${i + 1}`);
+    }
   });
 }
 
@@ -96,8 +101,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const doScrub = args.includes('--scrub');
   const targets = args.filter((a) => a !== '--scrub');
   if (!targets.length) { console.error('usage: leak-check.mjs [--deny file] [--scrub] <path>...'); process.exit(2); }
-  const deny = denyFile && fs.existsSync(denyFile) ? fs.readFileSync(denyFile, 'utf8') : '';
-  const list = rules({ deny });
+  let list;
+  try {
+    const deny = denyFile ? fs.readFileSync(denyFile, 'utf8') : '';
+    list = rules({ deny });
+  } catch {
+    console.error('leak-check: cannot read or parse the requested deny list');
+    process.exit(2);
+  }
   let bad = 0;
   for (const f of notIgnored(targets.flatMap(walk))) {
     const text = fs.readFileSync(f, 'utf8');

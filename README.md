@@ -19,8 +19,8 @@ One plugin, two skills:
 - **phronesis** shapes every reply.
 - **phronesis-audit** checks your repository's Claude Code setup, in the same style.
 
-**Status:** early version. Tested on Claude Code and OpenCode in parts. Other agents are
-not tested yet.
+**Status:** early version. Claude Code is the primary target; other integrations have
+partial or no validation.
 
 ## Install
 
@@ -32,8 +32,11 @@ claude plugin install phronesis@phronesis
 Then type `/phronesis:phronesis` for the reply style, or `/phronesis:phronesis-audit`
 for the audit. Say "stop phronesis" to turn the style off.
 
-- **Always on, no typing:** create the file `~/.claude/.phronesis-always` (needs Node). Each
-  session then starts with a compact core of the rules (about 900 tokens), and each prompt gets
+- **Native persistent style (optional):** select `/output-style phronesis`. It preserves
+  Claude's coding instructions and does not force itself on. Use `/output-style default`
+  to disable it across future sessions. Choose this or the hook mode below, not both.
+- **Always on, no typing (hook alternative):** create the file `~/.claude/.phronesis-always` (needs Node).
+  Each session then starts with a compact core of the rules (about 900 tokens), and each prompt gets
   a one-line reminder (about 40 tokens) so the style does not fade in long sessions.
 - **Length:** say `phronesis short` or `phronesis detailed`. `phronesis normal` is the default.
 - **Other agents** (Codex, OpenCode, Gemini CLI, Qwen Code, Kimi Code, Antigravity, Cursor):
@@ -55,7 +58,7 @@ A full example is in [examples/phronesis.md](examples/phronesis.md).
 
 1. Answer or next action first.
 2. Numbered steps, one action each.
-3. Say where things stand, every turn.
+3. Say where things stand during ongoing tasks.
 4. Time in real units, with the condition.
 5. Literal language: no idioms, metaphors or sarcasm.
 6. The same word for the same thing.
@@ -64,7 +67,7 @@ A full example is in [examples/phronesis.md](examples/phronesis.md).
 9. A reason with every recommendation.
 10. State certainty: verified, not verified, or unknown.
 11. Show finished work, with evidence.
-12. At most five items per list.
+12. At most five items per list by default; explicit complete-list requests win.
 13. One topic per reply.
 14. No preamble, no recap, no pleasantries.
 15. Keep code changes predictable.
@@ -97,7 +100,7 @@ plain ASCII), cost (tokens, latency) and skill triggering. Results for this rele
 
 ## Evals
 
-`evals/` holds 10 made-up cases that anyone can run with Claude Code's own command:
+`evals/` holds 15 made-up cases that anyone can run with Claude Code's own command:
 
 ```bash
 claude plugin eval . --no-publish
@@ -110,10 +113,15 @@ the skill when it is invoked; the always-on core needs an opt-in file in your co
 (`~/.claude/.phronesis-always`), which an eval sandbox does not have, so it is measured
 only by the private benchmark.
 
-Last run (Opus 5.5, list-price estimate $3.9, not billed on a subscription): most cases are
-at the ceiling in both arms. The plugin lifts the next-action case (+0.50), the
+Historical v0.5.0 run (Opus 5.5, list-price estimate $3.9, not billed on a subscription):
+most cases are at the ceiling in both arms. The plugin lifts the next-action case (+0.50), the
 uncertain-cause case (+0.33) and the estimate case (+0.22). The command exits 1 when any
 case scores below 1.0; pass `--threshold 0.8` to allow noise.
+
+The five new `reliability` cases check exact deliverables, complete lists, factual scope,
+lookup brevity and corrected task state. Their live comparison has not completed: the
+local runner stopped at authentication. See [Claude reliability](docs/claude-reliability.md)
+for reproducible checks, evidence limits and the remaining validation plan.
 
 Safety: do not pass `--scaffold` or `--allow-tools`, and do not run evals in CI on pull
 requests from forks with `--trust-plugin`. Results go to `evals/results/`, which git ignores.
@@ -139,21 +147,27 @@ repository. It never opens PDFs, `.env` files, keys or data folders.
 The full report goes to `.claude/audit-report.md`. Chat gets a verdict, the top five
 recommendations and a numbered plan.
 
-Two tested scripts ship with it, so the audit does not rely on judgement alone:
+Three tested scripts ship with it, so the audit does not rely on judgement alone:
 - `scripts/check-setup.mjs`: deterministic checks of skill frontmatter limits, the skill
   listing budget, CLAUDE.md size and imports, broad permissions, risky hooks, agent tools and
-  models, and which private files exist (by name only). `--usage` reads token counts and skill
-  names from your session logs, never message text.
-- `scripts/drift-check.mjs`: the session-start check the audit installs. It reports new
-  commits on adopted sources, changed documentation pages and retired model IDs, once a day,
-  and stays silent when offline or when nothing changed.
+  models, nested/scoped repository instructions and private files present (by name only).
+  Gates include evidence and a "not run" execution status. `--usage` analyzes logged token
+  counts and skill names, deduplicates streamed records and reports coverage, not a bill.
+- `scripts/drift-check.mjs`: compares adopted content at the validated commit with upstream,
+  checks documentation and reports unverified model listings. Successful checks are cached
+  daily; failed pieces retry. Offline is unknown, never proof that everything is current.
+- `scripts/setup-plan.mjs`: previews and applies reviewed repository Claude files with
+  expected hashes, optional explicit checks and conflict-preserving rollback. See the
+  [setup-plan format and limits](skills/phronesis-audit/references/setup-plan.md).
 
 ## Make it yours
 
 Fork, edit [`skills/phronesis/SKILL.md`](skills/phronesis/SKILL.md), reinstall. If you add
-a rule, add its reason too.
+a rule, add its reason too. Update `skills/phronesis/core.md` alongside it, then run
+`node scripts/sync-output-style.mjs` to regenerate the native Claude output style.
 
 ## Credits and licence
 
 Builds on [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub Ghriss (MIT). Its
 notice is in [NOTICE](NOTICE). This repository is MIT licensed, see [LICENSE](LICENSE).
+The bundled YAML parser is ISC licensed; its notice is in [YAML-LICENSE](skills/phronesis-audit/scripts/vendor/YAML-LICENSE).

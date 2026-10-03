@@ -52,7 +52,9 @@ same content in plain wording.
 - Run the bundled scripts instead of re-deriving what they check:
   `node <skill dir>/scripts/check-setup.mjs <repo>` gives deterministic findings (skill
   frontmatter limits, description budget, CLAUDE.md size and imports, broad permissions, hooks,
-  agent models, private files present). Report its findings as verified; judge the rest.
+  agent models, private files present). Cite its observations. A detected gate has not
+  been executed and a heuristic finding is not a verified diagnosis. Report scan scope
+  and unknown coverage; judge the rest.
 </rules>
 
 <mode name="scan">
@@ -90,11 +92,13 @@ Write a project profile of at most 20 lines:
 - Conventions already written down (CLAUDE.md, AGENTS.md, CONTRIBUTING, lint configs).
 - The existing Claude setup: `.claude/` (skills, agents, hooks, settings, commands), MCP
   servers, and what `check-setup.mjs` reports. With `--usage`, it also reads this project's
-  session logs (token counts and tool names only, never message text) to show which skills
-  are used and what a session costs; run it when the maintainer agrees.
+  session logs, analyzing only token counts and tool names, to show logged token totals
+  and which skills are used. It does not estimate a bill and excludes subagent logs; run it when the maintainer agrees.
 - The recurring work: what the git history and open issues say people spend time on.
 - Verification gates, found or missing: tests, build, linter, type check, CI, a Stop hook
-  that blocks a turn until a check passes, a `/goal` condition. AI raises delivery speed and
+  that blocks a turn until a check passes, a `/goal` condition. Distinguish detected,
+  executed/pass, executed/fail and unknown. A manifest or empty tests folder proves no
+  tests; a configured command proves neither execution nor useful assertions. AI raises delivery speed and
   instability together unless strong tests, version control and fast feedback are in place
   (DORA 2025), so missing gates come first in the plan, before any skill.
 - How mature the repository is and how well its maintainers know it. Experienced developers
@@ -129,16 +133,20 @@ Two layers. The detail goes to a file, the decision goes to chat.
    4. Gaps: needs no public candidate covers, with a one-line spec for each.
    5. The install plan: the exact files to add or change, missing verification gates first,
       what to remove (including CLAUDE.md lines to cut), and the lock file, drift check and
-      hook from phase 6. Stage it: adopt a few pieces, measure, then add more; a complex
+      hook from phase 6. Use [references/setup-plan.md](references/setup-plan.md) to produce
+      a previewable plan with expected hashes, verification commands and rollback. Present
+      commands for approval along with files. Existing authorization for that exact plan
+      does not need to be requested again. Stage it: adopt a few pieces, measure, then add more; a complex
       system that works grew from a simple one that worked (Gall's Law). If phronesis was
-      chosen and always-on is not set up, list "create `.phronesis-always`" as optional.
+      chosen and persistence is not set up, offer the native `/output-style phronesis`
+      as optional; the hook-based `.phronesis-always` mode is an alternative.
    6. What you could not verify, and the sources you read with dates.
    If the file cannot be written, say so and give the same content in chat, in pieces of at
    most five items.
 
 2. In chat, send only this, in the voice section's style:
    1. First line: the verdict in counts and the gate status, for example "Adopt 3, adapt 1,
-      reject 5. Gates: tests yes, CI yes, Stop hook missing."
+      reject 5. Gates: tests detected (not run), CI detected, Stop hook not detected."
    2. The top five recommendations, one line each: name, verdict, reason. Say where the rest
       are.
    3. The install plan as numbered single steps.

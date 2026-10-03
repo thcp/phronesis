@@ -58,6 +58,11 @@ test('confirmation counts as a statement or a question', () => {
 });
 
 test('a short "Next (recommended):" line counts as a next action', () => {
-  assert.equal(measure('Answer.\n\n**Next (recommended):** run the tests.').nextActionLast, true);
-  assert.equal(measure('Answer.\n\nDone.').nextActionLast, false);
+  assert.equal(measure('Answer.\n\n**Next (recommended):** run the tests.', { expects_next_action: true }).nextActionLast, true);
+  assert.equal(measure('Answer.\n\nDone.', { expects_next_action: true }).nextActionLast, false);
+});
+
+test('next actions are opt-in and cannot override deliverable-only tasks', () => {
+  assert.equal(measure('Port 8443.').nextActionLast, null);
+  assert.equal(measure('{}', { expects_next_action: true, deliverable_only: true }).nextActionLast, null);
 });

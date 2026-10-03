@@ -13,21 +13,27 @@ Every session start, cheap and automatic:
     "question_style": "A",
     "reply_style": "phronesis",
     "sources": [{ "repo": "owner/name", "path": "skills/x", "commit": "<sha>" }],
-    "docs": [{ "url": "https://...", "sha256": "<hash>", "date": "YYYY-MM-DD" }],
+    "docs": [{ "url": "https://...", "sha256": "<hash>", "hashVersion": 2, "date": "YYYY-MM-DD" }],
     "models": ["<every model ID the setup assigns>"],
     "decisions": [{ "item": "<recommendation name>", "status": "applied | declined | seen", "date": "YYYY-MM-DD" }]
   }
   ```
 
   Compute each `docs[].sha256` with `node <skill dir>/scripts/drift-check.mjs --hash <url>`,
-  so the hash is made the same way the check makes it.
+  so the hash is made the same way the check makes it. Version 2 hashes main/article text
+  when available to avoid navigation-only changes. Existing entries without hashVersion
+  use the legacy whole-page text hash until revalidated. Record an immutable source commit:
+  the script compares adopted path content at that revision to the current default branch,
+  not the path's last commit to repository HEAD.
 - Install the bundled, tested script rather than writing one: copy
   `<skill dir>/scripts/drift-check.mjs` to `.claude/hooks/phronesis-drift-check.mjs` and add a
-  `SessionStart` hook (matcher `startup`) that runs `node .claude/hooks/phronesis-drift-check.mjs`.
+  `SessionStart` hook (matcher `startup`) that runs `node "$CLAUDE_PROJECT_DIR/.claude/hooks/phronesis-drift-check.mjs"`.
   It needs Node 18 or newer and no packages. It works on Windows, macOS and Linux, runs the
-  network part at most once a day (cache in `.claude/.phronesis-drift-cache.json`, which
+  successful observations at most once a day (cache in `.claude/.phronesis-drift-cache.json`, which
   belongs in `.gitignore`), gives each request 4 seconds, treats being offline as "not
-  checked", and prints nothing when nothing changed.
+  checked", and prints nothing when nothing changed. Failed pieces are retried, even that
+  day. Editing the lock invalidates the cache. Use `--json` during an audit to expose
+  unknown coverage. A model missing from a page is unverified, not confirmed retired.
 - When it reports a change, Claude's first message of the session says what changed (which
   source, which page, which model), what that could affect in this repo's setup, and offers to
   re-validate it.

@@ -122,8 +122,8 @@ not measured.
 
 | How it improves this plugin | Expected benefit for you | Source |
 |---|---|---|
-| State is restated every turn (rule 3). | You can leave and return without rereading the whole thread. | Alderson et al., 2013 |
-| Lists show at most five items (rule 12). | Less to hold in your head at once. | Pievsky and McGrath, 2018 |
+| State is restated during ongoing tasks (rule 3). | You can leave and return without rereading the whole thread. | Alderson et al., 2013 |
+| Lists default to at most five items; explicit complete-list requests win (rule 12). | Less to hold in your head at once. | Pievsky and McGrath, 2018 |
 | Time is given in real units with its condition, never "a bit of work" (rule 4). | You can plan your time from a real number. | Zheng et al., 2022 |
 | Estimates always carry numbers (rule 4). | Fewer surprises from tasks that take longer than they sounded. | Time-perception review, 55 studies |
 | The answer or next action comes first, steps are single and numbered, each reply covers one topic (rules 1, 2, 13). | Starting is easier because the first line tells you what to do. | Liebel et al., 2024 |

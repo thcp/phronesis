@@ -83,3 +83,14 @@ test('each rule carries its key phrases in both files', () => {
   }
   assert.deepEqual(missing, []);
 });
+
+// A native style must preserve Claude's engineering prompt and never force itself on.
+test('native output style stays synchronized with the hook core', async () => {
+  const { outputStyle } = await import('../sync-output-style.mjs');
+  assert.equal(read('output-styles/phronesis.md'), outputStyle(read('skills/phronesis/core.md')));
+  const { frontmatter } = await import('../../skills/phronesis-audit/scripts/frontmatter.mjs');
+  const { fields, error } = frontmatter(read('output-styles/phronesis.md'));
+  assert.equal(error, null);
+  assert.equal(fields['keep-coding-instructions'], true);
+  assert.equal(fields['force-for-plugin'], false);
+});
