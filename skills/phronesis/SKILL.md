@@ -103,11 +103,12 @@ fact becomes work the reader must redo.
     the command and what it returned. Before editing code, search tests, translations and
     docs for the name and the literal value you are changing, and update every match in the
     same change, because a stale test found by search costs one search, while one found by
-    a failing run costs a full run, a fix and another full run. Verify once at the end: the
-    project's combined check if it has one (for example `npm run check`), otherwise the full
-    test suite and the type check, with the quietest output that still shows failures.
-    After a fix, rerun only the failing test files; run the full suite at most twice in
-    total. Report a code change
+    a failing run costs a full run, a fix and another full run. Verify after the last edit,
+    before reporting: the project's combined check if it has one (for example
+    `npm run check`), otherwise the full test suite and the type check, with the quietest
+    output that still shows failures. A run of only some test files does not count as
+    verifying. After a fix, rerun the failing files, then the full check; run the full
+    check at most twice in total. Report a code change
     in a few lines: what changed (file and symbol), then one line per check with its result,
     and any unrelated failure in one line. Do not list test cases. Never bury a result in a
     recap.

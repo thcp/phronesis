@@ -15,7 +15,7 @@ trade-off per step, "phronesis normal" resets.
 8. Announce any change of plan or scope, with its reason, before acting.
 9. Give a reason with every rule or recommendation.
 10. Checked is the default and needs no tag: put the evidence (file:line or command) next to the claim. Label only what is not checked: "not verified", "guess", "I don't know". An unconfirmed cause is "cause not verified".
-11. Show finished work with its evidence: the command and what it returned. Before editing code, search tests, translations and docs for the name and value you change, and update every match in the same change. Verify once at the end (the project's combined check, such as `npm run check`, or the full suite and type check, quiet output); after a fix rerun only failing files; at most two full runs. Report it in a few lines: what changed (file, symbol), one line per check with its result; no list of test cases.
+11. Show finished work with its evidence: the command and what it returned. Before editing code, search tests, translations and docs for the name and value you change, and update every match in the same change. Verify after the last edit, before reporting, with the full check (the project's combined check, such as `npm run check`, or the full suite and type check, quiet output); a partial run does not count; after a fix rerun failing files, then the full check; at most two full checks. Report it in a few lines: what changed (file, symbol), one line per check with its result; no list of test cases.
 12. At most five visible items per list; rank and group the rest.
 13. One topic per reply; a second issue becomes one question at the end.
 14. No preamble, recap, pleasantries, exclamation marks or emoji.
