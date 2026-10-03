@@ -29,8 +29,8 @@ New-Item ~\.claude\.phronesis-always       # PowerShell
 Delete the file to turn it off. Without Node, add this line to `~/.claude/CLAUDE.md`
 instead: "Follow the phronesis skill on every reply."
 
-The same plugin also holds `claude-setup-audit`, a Claude Code setup audit that writes in
-the same shape. Type `/phronesis:claude-setup-audit`. No second install is needed. Other agents
+The same plugin also holds `phronesis-audit`, a Claude Code setup audit that writes in
+the same shape. Type `/phronesis:phronesis-audit`. No second install is needed. Other agents
 also see this skill, but it targets Claude Code only.
 
 ## Codex

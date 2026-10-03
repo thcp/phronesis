@@ -56,7 +56,7 @@ export function measure(text, task = {}) {
     decorativeChars: (text.match(DECOR) || []).length,
     certaintyStated: task.needs_certainty ? CERTAINTY.test(text) : null,
     timeInUnits: task.needs_estimate ? TIME_UNIT.test(text) : null,
-    nextActionLast: task.expects_next_action === false ? null : /next (action|step)/i.test(last),
+    nextActionLast: task.expects_next_action === false ? null : /next (action|step)|^next\b/i.test(last),
     asksBeforeActing: task.expects_confirmation ? CONFIRM.test(text) : null,
     deliverableOnly: task.deliverable_only
       ? !PREAMBLE.test(first) && !/(here is|here's|this commit message|let me know|i hope)/i.test(text)

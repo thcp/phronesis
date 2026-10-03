@@ -1,5 +1,5 @@
 ---
-name: claude-setup-audit
+name: phronesis-audit
 description: Audit and set up a repository's Claude Code configuration - inspect the project, choose the best public skills, subagents and hooks for its stack, check them against Anthropic's current documentation and models, tune each subagent's model, effort and tools, and add a start-of-session check that reports what changed upstream. Use when asked to set up, audit, improve or modernise Claude skills, agents, hooks or prompts for a repo, or to find the best Claude skill repositories for a project.
 user-invocable: true
 ---

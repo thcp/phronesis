@@ -23,4 +23,4 @@ jobs:
       - name: Repository checks (JSON, versions, plain ASCII, links, skill limits)
         run: node scripts/check.mjs
       - name: Tests (hooks, audit scripts, benchmark metrics)
-        run: node --test "hooks/test/*.test.mjs" "skills/claude-setup-audit/scripts/test/*.test.mjs" "bench/test/*.test.mjs"
+        run: node --test "hooks/test/*.test.mjs" "skills/phronesis-audit/scripts/test/*.test.mjs" "bench/test/*.test.mjs"

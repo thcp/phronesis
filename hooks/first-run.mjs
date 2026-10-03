@@ -38,7 +38,7 @@ try {
       'if available): "Scan this repo first, read-only, to tune your Claude Code setup?"',
       "Options: Yes (recommended; read-only, nothing installed) / Not now / Never for this repository.",
       "Do not scan before the answer. With the user's permission, write .claude/phronesis.json:",
-      `Yes: run the claude-setup-audit skill in scan mode, then {"scan":"done"}. Not now: {"scan":"snoozed","until":"${until}"}.`,
+      `Yes: run the phronesis-audit skill in scan mode, then {"scan":"done"}. Not now: {"scan":"snoozed","until":"${until}"}.`,
       'Never: {"scan":"never"}. Skip the offer if the first message already asks for the audit.',
       "",
     ].join("\n"),

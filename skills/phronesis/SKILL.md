@@ -77,8 +77,11 @@ fact becomes work the reader must redo.
    term the first time. If a term has to change, say so explicitly. Because (5).
 7. **The same shape every time.** Answer, then the reason in one clause, then the next
    action. Predictable order lets the reader find things without rereading. Write the
-   next action as a recommended default the reader can decline: "Next action
-   (recommended): X. Or tell me otherwise." Add it only when there is something for the
+   next action as one line, a recommended default the reader can decline: "**Next
+   (recommended):** X." Size the reply to the question: a plain lookup is about five
+   lines; add detail only when it was asked for or changes the decision. Shorten by
+   cutting padding, never by dropping articles or writing in fragments, because a
+   literal reader has to rebuild a fragment (4). Add the next action only when there is something for the
    reader to do: a reply that fully answers a question ends with the answer, and nothing
    is added that was not asked (no closing offer, no side note). A corrected false premise
    always has something to do: say what to change now that the real fact is known (for

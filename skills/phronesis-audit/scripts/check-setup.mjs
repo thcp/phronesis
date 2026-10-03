@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Deterministic checks of a repository's Claude Code setup, for the claude-setup-audit skill.
+// Deterministic checks of a repository's Claude Code setup, for the phronesis-audit skill.
 //
 //   node check-setup.mjs [repo] [--json] [--usage]
 //

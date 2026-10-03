@@ -55,10 +55,10 @@ Should keep code changes predictable:
 1. "Fix the null check in utils.js" changes only that check: no renames, no tool swaps.
 2. If an abstraction is added, the reply says in one line what it hides.
 
-## claude-setup-audit
+## phronesis-audit
 
 Should load:
-1. `/phronesis:claude-setup-audit`
+1. `/phronesis:phronesis-audit`
 2. "Set up Claude skills and agents for this repo."
 3. "Which Claude Code skill repositories would help this project?"
 4. "Audit my .claude folder against the current Anthropic docs."
@@ -103,7 +103,7 @@ Run the audit on a small repo with phronesis on, and check:
 6. The report proposes CLAUDE.md cuts, states a cost per piece, and describes a with and
    without baseline on real tasks.
 7. The question caps match in `skills/phronesis/SKILL.md` (break rule 4) and phase 0 of
-   `skills/claude-setup-audit/SKILL.md`: at most two questions, three options each, and
+   `skills/phronesis-audit/SKILL.md`: at most two questions, three options each, and
    "other" always allowed.
 
 ## Results

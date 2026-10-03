@@ -6,10 +6,10 @@
   { "id": "p-no-tcp", "skill": "phronesis", "expect": false, "prompt": "Explain how the TCP handshake works." },
   { "id": "p-no-a11y", "skill": "phronesis", "expect": false, "prompt": "Write an accessibility checklist for a web page's forms." },
   { "id": "p-no-regex", "skill": "phronesis", "expect": false, "prompt": "Write a regex that matches ISO 8601 dates." },
-  { "id": "a-setup", "skill": "claude-setup-audit", "expect": true, "prompt": "Set up Claude skills and agents for this repo." },
-  { "id": "a-repos", "skill": "claude-setup-audit", "expect": true, "prompt": "Which Claude Code skill repositories would help this project?" },
-  { "id": "a-audit", "skill": "claude-setup-audit", "expect": true, "prompt": "Audit my .claude folder against the current Anthropic docs." },
-  { "id": "a-no-test", "skill": "claude-setup-audit", "expect": false, "prompt": "Fix the failing test in auth.spec.ts." },
-  { "id": "a-no-what", "skill": "claude-setup-audit", "expect": false, "prompt": "What is a Claude skill, in one sentence?" },
-  { "id": "a-no-readme", "skill": "claude-setup-audit", "expect": false, "prompt": "Write a README for a todo app." }
+  { "id": "a-setup", "skill": "phronesis-audit", "expect": true, "prompt": "Set up Claude skills and agents for this repo." },
+  { "id": "a-repos", "skill": "phronesis-audit", "expect": true, "prompt": "Which Claude Code skill repositories would help this project?" },
+  { "id": "a-audit", "skill": "phronesis-audit", "expect": true, "prompt": "Audit my .claude folder against the current Anthropic docs." },
+  { "id": "a-no-test", "skill": "phronesis-audit", "expect": false, "prompt": "Fix the failing test in auth.spec.ts." },
+  { "id": "a-no-what", "skill": "phronesis-audit", "expect": false, "prompt": "What is a Claude skill, in one sentence?" },
+  { "id": "a-no-readme", "skill": "phronesis-audit", "expect": false, "prompt": "Write a README for a todo app." }
 ]
