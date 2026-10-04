@@ -18,9 +18,10 @@ const repo = path.resolve(argv.find((a) => !a.startsWith('--')) || '.');
 const findings = [];
 const facts = { scope: { repositoryOnly: true, ancestorsAndUserSettings: 'not inspected', gateExecution: 'not run' } };
 const repoReal = fs.realpathSync(repo);
+const relativeFile = (file) => path.relative(repo, file).split(path.sep).join('/');
 
 // severity: high (fix before relying on the setup), medium (should fix), info (worth knowing)
-const add = (severity, id, file, message) => findings.push({ severity, id, file: file && path.relative(repo, file), message });
+const add = (severity, id, file, message) => findings.push({ severity, id, file: file && relativeFile(file), message });
 
 const read = (f) => {
   try {
@@ -142,7 +143,7 @@ function checkMemoryFiles() {
     const text = read(f);
     if (text === null) return;
     const lines = text.split(/\r?\n/).length;
-    facts[path.relative(repo, f)] = `${lines} lines`;
+    facts[relativeFile(f)] = `${lines} lines`;
     if (lines > 200) add('medium', 'memory-long', f, `${lines} lines; trim always-loaded rules and move occasional rules into skills. Nested and scoped files load conditionally.`);
     const prose = text.replace(/```[\s\S]*?```|`[^`\n]*`/g, '');
     for (const m of prose.matchAll(/(?:^|\s)@((?:\.{1,2}\/|~\/|\/)?[\w./-]+\.\w+)/g)) {
@@ -156,7 +157,7 @@ function checkMemoryFiles() {
   };
   const memory = discoveredFiles.filter((f) => /^(CLAUDE(?:\.local)?|AGENTS)\.md$/.test(path.basename(f)) || /(?:^|[\/\\])\.claude[\/\\]rules[\/\\].*\.md$/.test(f));
   for (const f of memory) inspect(f);
-  facts.instructionFiles = memory.map((f) => path.relative(repo, f));
+  facts.instructionFiles = memory.map((f) => relativeFile(f));
   if (!facts['CLAUDE.md'] && !facts['.claude/CLAUDE.md']) add('info', 'memory-missing', null, 'No root CLAUDE.md. Add one only for rules Claude cannot read from the code.');
 }
 
@@ -237,7 +238,7 @@ function checkGates() {
   const scripts = pkg?.scripts || {};
   const configured = (re) => Object.entries(scripts).filter(([k, v]) => re.test(k) && typeof v === 'string' && v.trim()).map(([k]) => `package.json#scripts.${k}`);
   const existing = (...names) => names.filter((name) => fs.existsSync(path.join(repo, name)));
-  const fileNames = discoveredFiles.map((f) => path.relative(repo, f).split(path.sep).join('/'));
+  const fileNames = discoveredFiles.map((f) => relativeFile(f));
   const evidence = {
     ci: [...fileNames.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(f)), ...existing('.gitlab-ci.yml', '.circleci/config.yml', 'azure-pipelines.yml', 'Jenkinsfile')],
     tests: [...configured(/^test(?::|$)/), ...fileNames.filter((f) => /(?:^|\/)(?:test_[^/]+\.py|[^/]+_test\.go|[^/]+\.(?:test|spec)\.[cm]?[jt]sx?)$/.test(f))],
@@ -270,10 +271,10 @@ function findPrivate() {
       const p = path.join(d, e.name);
       if (e.isDirectory()) {
         if (SKIP.has(e.name)) continue;
-        if (DATA.has(e.name)) found.push(`${path.relative(repo, p)}/ (data folder)`);
+        if (DATA.has(e.name)) found.push(`${relativeFile(p)}/ (data folder)`);
         else walk(p, depth + 1);
       } else if (PRIVATE.test(e.name) && !/\.(example|sample|template)$/i.test(e.name)) {
-        found.push(path.relative(repo, p));
+        found.push(relativeFile(p));
       }
     }
   };
