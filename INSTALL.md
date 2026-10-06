@@ -43,6 +43,10 @@ New-Item ~\.claude\.phronesis-always       # PowerShell
 Delete the file to turn it off. Without Node, add this line to `~/.claude/CLAUDE.md`
 instead: "Follow the phronesis skill on every reply."
 
+Alternative without a hook: the plugin ships the same core as an output style. Select it with
+`/output-style phronesis:phronesis`, or set `"outputStyle": "phronesis:phronesis"` in settings. It keeps
+Claude Code's coding instructions and is never turned on by itself.
+
 The same plugin also holds `phronesis-audit`, a Claude Code setup audit that writes in
 the same shape. Type `/phronesis:phronesis-audit`. No second install is needed. Other agents
 also see this skill, but it targets Claude Code only.
