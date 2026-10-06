@@ -98,7 +98,7 @@ plain ASCII), cost (tokens, latency) and skill triggering. Results for this rele
 
 ## Evals
 
-`evals/` holds 10 made-up cases that anyone can run with Claude Code's own command:
+`evals/` holds 13 made-up cases that anyone can run with Claude Code's own command:
 
 ```bash
 claude plugin eval . --no-publish
@@ -115,6 +115,10 @@ Last run (Opus 5.5, list-price estimate $3.9, not billed on a subscription): mos
 at the ceiling in both arms. The plugin lifts the next-action case (+0.50), the
 uncertain-cause case (+0.33) and the estimate case (+0.22). The command exits 1 when any
 case scores below 1.0; pass `--threshold 0.8` to allow noise.
+
+The last run covered the first 10 cases. Three newer cases (exact JSON, scope and thresholds
+kept when shortening, resuming from a correction) have not been run yet; their regex graders
+are tested against good and bad sample replies.
 
 Safety: do not pass `--scaffold` or `--allow-tools`, and do not run evals in CI on pull
 requests from forks with `--trust-plugin`. Results go to `evals/results/`, which git ignores.
