@@ -15,6 +15,7 @@ const REQUIRED = {
     'adhd needs less text; autism needs nothing left implicit',
   ],
   'skills/phronesis/core.md': ['the reader is autistic (level 1) and has adhd'],
+  'output-styles/phronesis.md': ['the reader is autistic (level 1) and has adhd', 'a reader who is autistic (level 1) and has adhd'],
   'GEMINI.md': ['a reader who is autistic (level 1) and has adhd'],
   '.codex-plugin/plugin.json': ['a reader who is autistic (level 1) and has adhd'],
 };
